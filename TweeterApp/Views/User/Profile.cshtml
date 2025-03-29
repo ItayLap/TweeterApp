@@ -1,0 +1,14 @@
+﻿@model TweeterApp.Models.ApplicationUser
+@if(User.Identity.IsAuthenticated && User.Identity.Name != Model.UserName){
+    @if(ViewBag.IsFollowing){
+        <form asp-action="Unfollow" asp-controller="Follow" method="post">
+            <input type="hidden" name="followeeId" value="@Model.Id"/>
+            <button type="submit" class="btn btn-danger">Unsubscribe</button>
+        </form>
+    }else{
+        <form asp-action="follow" asp-controller="Follow" method="post">
+            <input type="hidden" name="followeeId" value="@Model.Id" />
+            <button type="submit" class="btn btn-danger">Subscribe</button>
+        </form>
+    }
+}

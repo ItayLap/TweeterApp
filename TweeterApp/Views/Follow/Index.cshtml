@@ -1,0 +1,17 @@
+﻿
+@model TweeterApp.Models.ViewModels.FollowViewModel
+<h2>Profile @Model.User.UserName</h2>
+<h3>Current followers:</h3>
+<ul>
+    @foreach(var follower in Model.Followers){
+        <li>@follower.UserName</li>
+    }
+</ul>
+
+<h3>Currently followering:</h3>
+<ul>
+    @foreach (var followee in Model.Following)
+    {
+        <li>@followee.UserName</li>
+    }
+</ul>

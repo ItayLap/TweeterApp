@@ -1,0 +1,16 @@
+﻿@{
+
+}
+@model IEnumerable<TweeterApp.Models.PostModel>
+<h2>Posts</h2>
+<a asp-action="Create" class="btn btn-primary">Create post</a>
+@foreach(var post in Model)
+{
+    <div class="post">
+        <h4>@post.Title</h4>
+        <p>@post.Content</p>
+        <p>Author: @post.User.UserName</p>
+        <a asp-action="Edit" asp-route-id="@post.Id">Edit</a>
+        <a asp-action="Delete" asp-route-id="@post.Id">Delete</a>
+    </div>
+}
