@@ -14,7 +14,7 @@ namespace TweeterApp.Data
         }
         public DbSet<PostModel> Posts { get; set; }
         public DbSet<FollowModel> Follows { get; set; }
-        public DbSet<LikeModel> Like { get; set; }
+        public DbSet<LikeModel> Likes { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder) 
         {
             base.OnModelCreating(modelBuilder);

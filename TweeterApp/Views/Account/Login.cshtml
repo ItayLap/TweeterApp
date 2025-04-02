@@ -1,0 +1,12 @@
+﻿@model TweeterApp.Models.ViewModels.LoginViewModel
+
+<h2>Login</h2>
+<form asp-action="Login" method="post">
+    <label>Email</label>
+    <input asp-for="Email" class="form-control"/>
+
+    <label>Password</label>
+    <input asp-for="Password" type="password" class="form-control" />
+
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>
