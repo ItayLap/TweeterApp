@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
+
 
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -43,6 +43,18 @@ builder.Services.AddScoped<IFollowRepository, FollowRepository>();
 
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleExist = await roleManager.RoleExistsAsync("User");
+    if (!roleExist)
+    {
+        var role = new IdentityRole<int>("User");
+        await roleManager.CreateAsync(role);
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -66,5 +78,5 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-app.MapRazorPages();
+
 app.Run();

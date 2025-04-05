@@ -28,14 +28,14 @@ namespace TweeterApp.Controllers
         {
             return View();
         }
-        // need to create Http methods
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PostModel Post)
         {
             if (ModelState.IsValid)
             {
-                var user =await _userManager.GetUserAsync(User);
+                var user = await _userManager.GetUserAsync(User);
                 Post.UserId = user.Id;
                 Post.CreatedDate = DateTime.UtcNow;
                 await _postRepository.AddAsync(Post);
@@ -47,7 +47,8 @@ namespace TweeterApp.Controllers
         public async Task<IActionResult> GetPost(int id)
         {
             var post = await _postRepository.GetByIdAsync(id);
-            if (post == null || post.UserId != int.Parse(_userManager.GetUserId(User))) // used to be UserModel
+            var user = await _userManager.GetUserAsync(User);
+            if (post == null || post.UserId != user.Id)
             {
                 return Forbid();
             }
@@ -72,7 +73,8 @@ namespace TweeterApp.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var post = await _postRepository.GetByIdAsync(id);
-            if (post == null || post.UserId != int.Parse(_userManager.GetUserId(User))) // used to be UserModel
+            var user = await _userManager.GetUserAsync(User);
+            if (post == null || post.UserId != user.Id)
             {
                 return Forbid();
             }

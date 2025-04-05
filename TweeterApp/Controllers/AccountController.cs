@@ -11,12 +11,13 @@ namespace TweeterApp.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-
+        private ILogger<AccountController> _logger;
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
+            
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser
@@ -36,6 +37,7 @@ namespace TweeterApp.Controllers
                 {
                     await _userManager.AddToRoleAsync(user, "User");
                     await _signInManager.SignInAsync(user, isPersistent: false);
+                    _logger.LogInformation("User {Email} registered succesfully.", model.Email);
                     return RedirectToAction("Index", "Home");
                 }
                 foreach (var error in result.Errors)
@@ -43,7 +45,8 @@ namespace TweeterApp.Controllers
                     ModelState.AddModelError("", error.Description);
                 }
             }
-            return View();
+            _logger.LogWarning("Model state isn't valid(or other error)");
+            return View(model);
         }
 
         [AllowAnonymous]
@@ -51,10 +54,12 @@ namespace TweeterApp.Controllers
         {
             return View();
         }
+
         public IActionResult Login()
         {
             return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
@@ -77,10 +82,11 @@ namespace TweeterApp.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _logger = logger;   
         }
     }
 }
