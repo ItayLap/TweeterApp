@@ -1,0 +1,10 @@
+﻿@model TweeterApp.Models.PostModel
+
+<div>
+    <h2>Post Deletetion</h2>
+    <p>@Model.Title</p>
+    <form asp-action="DeleteConfirmed" method="post">
+        <button type="submit" class="btn btn-primary">Delete</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

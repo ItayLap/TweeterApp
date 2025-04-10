@@ -33,14 +33,14 @@ namespace TweeterApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PostModel Post)
         {
-            if (ModelState.IsValid)
-            {
+            //if (ModelState.IsValid)
+            //{
                 var user = await _userManager.GetUserAsync(User);
                 Post.UserId = user.Id;
                 Post.CreatedDate = DateTime.UtcNow;
                 await _postRepository.AddAsync(Post);
                 return RedirectToAction("Index");
-            }
+            //}
             return View(Post);
         }
 
@@ -59,13 +59,23 @@ namespace TweeterApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, PostModel post)
         {
-            if (id !=post.Id) return NotFound();
+            if (id != post.Id) return NotFound();
             var user = await _userManager.GetUserAsync(User);
             if (post.UserId != user.Id)return Forbid();
-            if (ModelState.IsValid)
-            {
+            //if (ModelState.IsValid)
+            //{
                 await _postRepository.UpdateAsync(post);
                 return RedirectToAction("Index");
+           // }
+           //return View(post);
+        }
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var post = await _postRepository.GetByIdAsync(id);
+            if (post == null)
+            {
+                return NotFound();
             }
             return View(post);
         }
