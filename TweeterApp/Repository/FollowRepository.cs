@@ -12,10 +12,27 @@ namespace TweeterApp.Repository
             _context = context;
         }
 
-        public async Task AddAsync(FollowModel follow)
+        public async Task AddAsync(int followerId, int followeeId)
         {
-            _context.Follows.Add(follow);
-            await _context.SaveChangesAsync();
+            var follow = await _context.Follows
+                .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FolloweeId == followeeId);
+
+            if (follow != null)
+            {
+                _context.Follows.Remove(follow);
+                await _context.SaveChangesAsync();
+            }
+        }
+        public async Task RemoveAsync(int followerId, int followeeId)
+        {
+            var follow = await _context.Follows
+                .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FolloweeId == followeeId);
+
+            if (follow != null)
+            {              
+                _context.Follows.Remove(follow);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<IEnumerable<ApplicationUser>> GetFollowersAsync(int userId)
@@ -37,12 +54,6 @@ namespace TweeterApp.Repository
         public async Task<bool> IsFollowingAsync(int followerId, int followeeId)
         {
             return await (_context.Follows.AnyAsync(f => f.FollowerId == followerId && f.FolloweeId == followeeId));
-        }
-
-        public async Task RemoveAsync(FollowModel follow)
-        {
-            _context.Follows.Remove(follow);
-            await _context.SaveChangesAsync();
         }
     }
 }

@@ -11,11 +11,13 @@ namespace TweeterApp.Controllers
     {
         public readonly IPostRepository _postRepository;
         public readonly UserManager<ApplicationUser> _userManager;
+        public readonly ILogger<PostController> _logger;
 
-        public PostController(IPostRepository postRepository, UserManager<ApplicationUser> userManager)
+        public PostController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, ILogger<PostController> logger)
         {
             _postRepository = postRepository;
             _userManager = userManager;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -61,7 +63,11 @@ namespace TweeterApp.Controllers
         {
             if (id != post.Id) return NotFound();
             var user = await _userManager.GetUserAsync(User);
-            if (post.UserId != user.Id)return Forbid();
+            if (post.UserId != user.Id)
+            {
+                _logger.LogInformation("post.UserId = {postUserId}, user.Id = {UserId}", post.UserId, user.Id);
+                return Forbid();
+            }
             //if (ModelState.IsValid)
             //{
                 await _postRepository.UpdateAsync(post);

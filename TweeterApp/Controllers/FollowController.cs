@@ -30,10 +30,11 @@ namespace TweeterApp.Controllers
             {
                 User = user,
                 Followers = followers.ToList(),
-                Following = following.ToList()
+                Following = following.ToList(),
             };
             return View(model);
         }
+        [HttpPost]
         public async Task<IActionResult> Follow(int followeeId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -47,8 +48,10 @@ namespace TweeterApp.Controllers
                 var follow = new FollowModel { FollowerId = user.Id, FolloweeId = followeeId };
                 await _followRepository.AddAsync(follow);
             }
-            return RedirectToAction("Index", "User", new {userId = followeeId});
+            return RedirectToAction("Index", "User", new {id = followeeId});
         }
+
+        [HttpPost]
         public async Task<IActionResult> UnFollow(int followeeId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -57,8 +60,8 @@ namespace TweeterApp.Controllers
                 return BadRequest();
             }
 
-            var follow = new FollowModel { FollowerId = user.Id, FolloweeId = followeeId };
-            await _followRepository.RemoveAsync(follow);
+            
+            await _followRepository.UnfollowAsync(user.Id, followeeId);
 
             return RedirectToAction("Index", "User", new { userId = followeeId });
         }
