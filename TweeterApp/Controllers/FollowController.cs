@@ -19,18 +19,21 @@ namespace TweeterApp.Controllers
         public async Task<IActionResult> Index(int userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (user == null || currentUser == user)
             {
                 return NotFound();
             }
             var followers = await _followRepository.GetFollowersAsync(user.Id);
             var following = await _followRepository.GetFollowingAsync(user.Id);
+            var isFollowing = await _followRepository.IsFollowingAsync(currentUser.Id, user.Id);
 
             var model = new FollowViewModel
             {
                 User = user,
                 Followers = followers.ToList(),
                 Following = following.ToList(),
+                IsFollowing = isFollowing
             };
             return View(model);
         }
@@ -45,8 +48,7 @@ namespace TweeterApp.Controllers
             var isFollowing = await _followRepository.IsFollowingAsync(user.Id, followeeId);
             if (!isFollowing)
             {
-                var follow = new FollowModel { FollowerId = user.Id, FolloweeId = followeeId };
-                await _followRepository.AddAsync(follow);
+                await _followRepository.FollowAsync(user.Id, followeeId);
             }
             return RedirectToAction("Index", "User", new {id = followeeId});
         }

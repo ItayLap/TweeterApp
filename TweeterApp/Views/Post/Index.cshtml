@@ -6,7 +6,7 @@
     <div class="post">
         <h4>@post.Title</h4>
         <p>@post.Content</p>
-        <p>Author: @post.User.UserName</p>
+        <p>Author:<a asp-controller="Follow" asp-action="Index" asp-route-userId="@post.UserId">@post.User.UserName</a></p>
         <a asp-action="Edit" asp-route-id="@post.Id">Edit</a>
         <a asp-action="Delete" asp-route-id="@post.Id">Delete</a>
     </div>

@@ -7,7 +7,7 @@ namespace TweeterApp.Repository
         Task<bool> IsFollowingAsync(int followerId, int followeeId);
         Task<IEnumerable<ApplicationUser>> GetFollowersAsync(int userId);
         Task<IEnumerable<ApplicationUser>> GetFollowingAsync(int userId);
-        Task AddAsync(int followerId, int followeeId);
-        Task RemoveAsync(int followerId,int followeeId);
+        Task FollowAsync(int followerId, int followeeId);
+        Task UnfollowAsync(int followerId,int followeeId);
     }
 }

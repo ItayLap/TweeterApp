@@ -11,8 +11,8 @@ namespace TweeterApp.Repository
         {
             _context = context;
         }
-
-        public async Task AddAsync(int followerId, int followeeId)
+        
+        public async Task FollowAsync(int followerId, int followeeId)
         {
             var follow = await _context.Follows
                 .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FolloweeId == followeeId);
@@ -23,7 +23,7 @@ namespace TweeterApp.Repository
                 await _context.SaveChangesAsync();
             }
         }
-        public async Task RemoveAsync(int followerId, int followeeId)
+        public async Task UnfollowAsync(int followerId, int followeeId)
         {
             var follow = await _context.Follows
                 .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FolloweeId == followeeId);

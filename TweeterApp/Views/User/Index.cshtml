@@ -1,0 +1,39 @@
+﻿@model TweeterApp.Models.ViewModels.FollowViewModel
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
+    <h2>@Model.User.UserName</h2>
+    @if (User.Identity.IsAuthenticated)
+    {
+        var currentUserId = int.Parse(UserManager.GetUserId(User));
+        if (currentUserId != Model.User.Id)
+        {
+            if (Model.IsFollowing)
+            {
+                <form asp-controller="Follow" asp-action="UnFollow" method="post" style="display:inline">
+                    <input type="hidden" name="followeeId" value="@Model.User.Id"/>
+                    <button class="btn btn-outline-secondary">Unfollow</button>
+                </form>
+            }else{
+            <form asp-controller="Follow" asp-action="Follow" method="post" style="display:inline">
+                <input type="hidden" name="followeeId" value="@Model.User.Id" />
+                <button class="btn btn-outline-secondary">Follow</button>
+            </form>
+            }
+        }
+    }
+<h3>Followers:</h3>
+<ul>
+    @foreach(var follower in Model.Followers)
+    {
+        <li>@follower.UserName</li>
+    }
+</ul>
+
+<h3>Following:</h3>
+<ul>
+    @foreach (var following in Model.Following)
+    {
+        <li>@following.UserName</li>
+    }
+</ul>
