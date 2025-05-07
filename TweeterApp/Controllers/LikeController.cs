@@ -53,11 +53,10 @@ namespace TweeterApp.Controllers
             {
                 return NotFound();
             }
-            var isLiked = await _likeRepository.IsLikedAsync(user.Id, PostId);
-            if (isLiked)
+            var isLiked = await _likeRepository.GetLikeAsync(user.Id, PostId);
+            if (isLiked != null)
             {
-                var like = new LikeModel { UserId = user.Id, PostId = PostId };
-                await _likeRepository.RemoveLikeAsync(like);
+                await _likeRepository.RemoveLikeAsync(isLiked);
             }
             return RedirectToAction("Index", "Post");
         }
