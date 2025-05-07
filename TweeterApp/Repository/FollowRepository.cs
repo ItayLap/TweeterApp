@@ -17,9 +17,16 @@ namespace TweeterApp.Repository
             var follow = await _context.Follows
                 .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FolloweeId == followeeId);
 
-            if (follow != null)
+            if (follow == null)
             {
-                _context.Follows.Remove(follow);
+                var newFollow = new FollowModel
+                {
+                    FollowerId = followerId,
+                    FolloweeId = followeeId,
+                    //FollowedOn = followedOn
+                };
+
+                _context.Follows.Add(newFollow);
                 await _context.SaveChangesAsync();
             }
         }

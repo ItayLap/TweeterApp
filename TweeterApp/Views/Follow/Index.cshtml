@@ -1,5 +1,7 @@
-﻿
+﻿@using Microsoft.AspNetCore.Identity
 @model TweeterApp.Models.ViewModels.FollowViewModel
+@inject UserManager<ApplicationUser> UserManager
+
 <h2>Profile @Model.User.UserName</h2>
 <h3>Current followers:</h3>
 <ul>
@@ -15,3 +17,21 @@
         <li>@followee.UserName</li>
     }
 </ul>
+@if(User.Identity.IsAuthenticated){
+    var currentUserId = int.Parse(UserManager.GetUserId(User));
+    if(currentUserId != Model.User.Id){
+        if(Model.IsFollowing){
+            <form asp-controller="Follow" asp-action="UnFollow" method="post" style="display:inline">
+                <input type="hidden" name="followeeId" value="@Model.User.Id" />
+                <button class="btn btn-outline-secondary">Unfollow</button>
+            </form>
+        }
+        else
+        {
+            <form asp-controller="Follow" asp-action="Follow" method="post" style="display:inline">
+                <input type="hidden" name="followeeId" value="@Model.User.Id" />
+                <button class="btn btn-outline-secondary">follow</button>
+            </form>
+        }
+    }
+}

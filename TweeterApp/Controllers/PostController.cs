@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using TweeterApp.Migrations;
 using TweeterApp.Models;
+using TweeterApp.Models.ViewModels;
 using TweeterApp.Repository;
 
 namespace TweeterApp.Controllers
@@ -12,18 +14,33 @@ namespace TweeterApp.Controllers
         public readonly IPostRepository _postRepository;
         public readonly UserManager<ApplicationUser> _userManager;
         public readonly ILogger<PostController> _logger;
+        public readonly ILikeRepository _likeRepository;
 
-        public PostController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, ILogger<PostController> logger)
+        public PostController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, ILogger<PostController> logger, ILikeRepository likeRepository)
         {
             _postRepository = postRepository;
             _userManager = userManager;
             _logger = logger;
+            _likeRepository = likeRepository;
         }
 
         public async Task<IActionResult> Index()
         {
             var posts = await _postRepository.GetAllAsync();
-            return View(posts);
+            var user = await _userManager.GetUserAsync(User);
+            var result = new List<PostViewModel>();
+            foreach (var post in posts)
+            {
+                var isLiked = await _likeRepository.IsLikedAsync(user.Id, post.Id);
+                var likeCount = await _likeRepository.GetLikeCountAsync(post.Id);
+
+                result.Add(new PostViewModel {
+                    Post = post,
+                    IsLikedByCurrentUser = isLiked,
+                    LikeCount = likeCount
+                });
+            }
+            return View(result);
         }
 
         public IActionResult Create() 
@@ -43,7 +60,7 @@ namespace TweeterApp.Controllers
                 await _postRepository.AddAsync(Post);
                 return RedirectToAction("Index");
             //}
-            return View(Post);
+           // return View(Post);
         }
 
         public async Task<IActionResult> GetPost(int id)

@@ -20,7 +20,7 @@ namespace TweeterApp.Controllers
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             var currentUser = await _userManager.GetUserAsync(User);
-            if (user == null || currentUser == user)
+            if (user == null)
             {
                 return NotFound();
             }
@@ -50,7 +50,7 @@ namespace TweeterApp.Controllers
             {
                 await _followRepository.FollowAsync(user.Id, followeeId);
             }
-            return RedirectToAction("Index", "User", new {id = followeeId});
+            return RedirectToAction("Index", "Follow", new {userId = followeeId});
         }
 
         [HttpPost]
@@ -65,7 +65,7 @@ namespace TweeterApp.Controllers
             
             await _followRepository.UnfollowAsync(user.Id, followeeId);
 
-            return RedirectToAction("Index", "User", new { userId = followeeId });
+            return RedirectToAction("Index", "Follow", new { userId = followeeId });
         }
     }
 }

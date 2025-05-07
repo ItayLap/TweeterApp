@@ -1,13 +1,27 @@
-﻿@model IEnumerable<TweeterApp.Models.PostModel>
+﻿@model IEnumerable<TweeterApp.Models.ViewModels.PostViewModel>
+
 <h2>Posts</h2>
 <a asp-action="Create" class="btn btn-primary">Create post</a>
 @foreach(var post in Model)
 {
     <div class="post">
-        <h4>@post.Title</h4>
-        <p>@post.Content</p>
-        <p>Author:<a asp-controller="Follow" asp-action="Index" asp-route-userId="@post.UserId">@post.User.UserName</a></p>
-        <a asp-action="Edit" asp-route-id="@post.Id">Edit</a>
-        <a asp-action="Delete" asp-route-id="@post.Id">Delete</a>
+        <h4>@post.Post.Title</h4>
+        <p>@post.Post.Content</p>
+        <p>Likes: @post.LikeCount</p>
+        <p>Author:<a asp-controller="Follow" asp-action="Index" asp-route-userId="@post.Post.UserId">@post.Post.User.UserName</a></p>
+
+        @if(post.IsLikedByCurrentUser){
+            <form action="/Like/UnlikePost" method="post">
+                <input type="hidden" name="PostId" value="@post.Post.Id" />
+                <button type="submit" class="btn btn-sm btn-danger">Unlike</button>
+            </form>
+        }else{
+            <form action="/Like/LikePost" method="post">
+                <input type="hidden" name="PostId" value="@post.Post.Id" />
+                <button type="submit" class="btn btn-sm btn-danger">Like</button>
+            </form>
+        }
+        <a asp-action="Edit" asp-route-id="@post.Post.Id">Edit</a>
+        <a asp-action="Delete" asp-route-id="@post.Post.Id">Delete</a>
     </div>
 }

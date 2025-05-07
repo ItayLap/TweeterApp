@@ -38,7 +38,8 @@ builder.Services.ConfigureApplicationCookie(config =>
 builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IPostRepository, PostRepository>(); 
-builder.Services.AddScoped<IFollowRepository, FollowRepository>();
+builder.Services.AddScoped<IFollowRepository, FollowRepository>(); 
+builder.Services.AddScoped<ILikeRepository, LikeRepository>();
 
 
 
