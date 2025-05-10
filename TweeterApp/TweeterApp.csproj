@@ -34,6 +34,7 @@
   <ItemGroup>
     <Folder Include="SignalRChat\" />
     <Folder Include="Services\" />
+    <Folder Include="wwwroot\Uploads\" />
   </ItemGroup>
 
 </Project>
