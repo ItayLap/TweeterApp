@@ -20,9 +20,13 @@ namespace TweeterApp.Repository
 
         public async Task DeleteAsync(int id)
         {
+
             var Post = await _context.Posts.FindAsync(id);
             if (Post != null)
             {
+                var Likes =  _context.Likes.Where(x => x.PostId == Post.Id);
+                _context.Likes.RemoveRange(Likes);
+
                 _context.Posts.Remove(Post);
                 await _context.SaveChangesAsync();
             }

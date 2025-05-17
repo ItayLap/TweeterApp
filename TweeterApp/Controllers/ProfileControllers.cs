@@ -21,6 +21,51 @@ namespace TweeterApp.Controllers
             _env = env;
             _followRepository = followRepository;
         }
+
+        public async Task<IActionResult> ViewProfile(int userId)
+        {
+            var CurrentUser = await _userManager.GetUserAsync(User);
+            if (CurrentUser != null && CurrentUser.Id == userId)
+            {
+                return RedirectToAction("MyProfile");
+            }
+
+            var user  = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                return NotFound();
+            }
+            var followers = await _followRepository.GetFollowersAsync(user.Id);
+            var following = await _followRepository.GetFollowingAsync(user.Id);
+            var isFollowing = await _followRepository.IsFollowingAsync(CurrentUser.Id,user.Id);
+            var model = new MyProfileViewModel
+            {
+                User = user,
+                Followers = followers.ToList(),
+                Following = following.ToList(),
+                isFollowing = isFollowing
+            };
+            return View("ViewProfile", model);
+        }
+
+        public async Task<IActionResult> MyProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var followers = await _followRepository.GetFollowingAsync(user.Id);
+            var following = await _followRepository.GetFollowingAsync(user.Id);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var model = new MyProfileViewModel
+            {
+                User = user,
+                Followers = followers.ToList(),
+                Following = following.ToList(),
+            };
+            return View(model);
+        }
+
         public async Task<IActionResult> Edit()
         {
             var user = await _userManager.GetUserAsync(User);

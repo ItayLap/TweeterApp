@@ -1,0 +1,23 @@
+﻿@model TweeterApp.Models.ViewModels.MyProfileViewModel
+<div>
+    <h2>@Model.User.UserName's profile</h2>
+    <img src="@Model.User.AvatarPath" width="150" />
+    <p>Name: @Model.User.FirstName @Model.User.LastName</p>
+    <p>Bio: @Model.User.Bio</p>
+    <a asp-action="Edit">edit profile</a>
+    <hr />
+    <h4>followers: @Model.Followers.Count</h4>
+    <ul>
+        @foreach(var follower in Model.Followers){
+            <li>@follower.UserName</li>
+        }
+    </ul>
+
+    <h4>following: @Model.Following.Count</h4>
+    <ul>
+        @foreach (var followee in Model.Following)
+        {
+            <li>@followee.UserName</li>
+        }
+    </ul>
+</div>

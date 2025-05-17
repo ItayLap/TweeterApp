@@ -1,0 +1,36 @@
+﻿@model MyProfileViewModel
+@using TweeterApp.Models.ViewModels
+
+
+<h2>@Model.User.UserName</h2>
+<img src="@Model.User.AvatarPath" width="150" />
+<p>Name: @Model.User.FirstName @Model.User.LastName</p>
+<p>Bio: @Model.User.Bio</p>
+
+@* @if (User.Identity.IsAuthenticated && User.Identity.Name != Model.User.Email) *@
+@*  { *@
+@*     <form asp-controller="Follow" asp-action="@(Model.isFollowing ? "UnFollow" : "Follow")" *@
+@*           method="post" style="display:inline"> *@
+@*         <input type="hidden" name="followeeId" value="@Model.User.Id" /> *@
+@*         <button type="submit" class="btn btn-outline-primary"> *@
+@*             @(Model.isFollowing ? "Unfollow" : "Follow") *@
+@*         </button> *@
+@*     </form> *@
+@*  } *@
+<a asp-action="Edit">Edit Profile</a>
+
+<h3>Followers:</h3>
+<ul>
+    @foreach (var follower in Model.Followers)
+    {
+        <li>@follower.UserName</li>
+    }
+</ul>
+
+<h3>Following:</h3>
+<ul>
+    @foreach (var following in Model.Following)
+    {
+        <li>@following.UserName</li>
+    }
+</ul>
