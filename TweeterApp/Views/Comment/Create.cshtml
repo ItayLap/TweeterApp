@@ -1,0 +1,11 @@
+﻿@model TweeterApp.Models.CommentModel
+<h2>Create Comment</h2>
+<form method="post" asp-action="Add">
+    <div>
+        <label for="Content">Content</label>
+        <textarea asp-for="Content" class="form-control" id="Content" rows="4"></textarea>
+        <span asp-validation-for="Content" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Post Comment</button>
+</form>
+<a asp-action="Index" class="btn btn-secondary">Back to post</a>

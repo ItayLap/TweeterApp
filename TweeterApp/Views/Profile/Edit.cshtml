@@ -16,7 +16,7 @@
     </div>
     <div class="form-group">
         <label>Avatar</label>
-        <input asp-for="Avatar" type="file" class="form-control" accept=".jpg / .jpeg / .png / .gif" />
+        <input asp-for="Avatar" type="file" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
         <span asp-validation-for="Avatar" class="text-danger"></span>
         @if(Model.CurrentAvatarPath != null){
             <img src="@Model.CurrentAvatarPath" width="100"/>

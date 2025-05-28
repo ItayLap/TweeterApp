@@ -1,0 +1,13 @@
+﻿@model TweeterApp.Models.CommentModel
+
+<div id="commentsSection">
+    @{
+        await Html.RenderActionAsync("GetComments", "Comment", new { postId = Model.Id });
+    }
+</div>
+
+<form asp-controller="Comment" asp-action="Add" method="post">
+    <input type="hidden" name="postId" value="@Model.Id" />
+    <textarea name="content" placeholder="Add a comment..." required></textarea>
+    <button type="submit">Comment</button>
+</form>

@@ -1,0 +1,20 @@
+﻿@model TweeterApp.Models.PostModel
+<h2>@Model.Title</h2>
+<p>@Model.Content</p>
+<p><strong>@Model.User.UserName</strong> @Model.CreatedDate.ToString("g")</p>
+
+<hr />
+<h4> Leave a Comment</h4>
+
+<form asp-action="Create" asp-controller="Comment" method="post">
+    <div>
+        <textarea name="content" placeholder="Add a comment..." required></textarea>
+        <span asp-validation-for="Content" class="text-danger"></span>
+    </div>
+    <button type="submit"> add Comment</button>
+</form>
+
+<h3>Comments</h3>
+<div id="comment-section">
+    @await Html.PartialAsync("_CommentsPartial", Model.Comments)
+</div>

@@ -13,6 +13,7 @@ namespace TweeterApp.Models
         //[ForeignKey(User)]
         public int UserId { get; set; }
         public ApplicationUser User { get; set; }
+        public CommentModel Comments { get; set; }
 
         // public ICollection<LikeModel> Likes { get; set; } = new List<LikeModel>();
     }

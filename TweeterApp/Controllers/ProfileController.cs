@@ -9,17 +9,19 @@ using TweeterApp.Repository;
 namespace TweeterApp.Controllers
 {
     [Authorize]
-    public class ProfileControllers : Controller
+    public class ProfileController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _env;
-        private readonly FollowRepository _followRepository;
+        private readonly IFollowRepository _followRepository;
+        private readonly ILogger<ProfileController> _logger;
 
-        public  ProfileControllers(UserManager<ApplicationUser> userManager, IWebHostEnvironment env, FollowRepository followRepository)
+        public  ProfileController(UserManager<ApplicationUser> userManager, IWebHostEnvironment env, IFollowRepository followRepository, ILogger<ProfileController> logger)
         {
             _userManager = userManager;
             _env = env;
             _followRepository = followRepository;
+            _logger = logger;
         }
 
         public async Task<IActionResult> ViewProfile(int userId)
@@ -27,6 +29,7 @@ namespace TweeterApp.Controllers
             var CurrentUser = await _userManager.GetUserAsync(User);
             if (CurrentUser != null && CurrentUser.Id == userId)
             {
+                _logger.LogInformation("shound go to MyProfile");
                 return RedirectToAction("MyProfile");
             }
 
@@ -45,7 +48,8 @@ namespace TweeterApp.Controllers
                 Following = following.ToList(),
                 isFollowing = isFollowing
             };
-            return View("ViewProfile", model);
+            _logger.LogInformation("passed model creation");
+            return View("Profile", model);
         }
 
         public async Task<IActionResult> MyProfile()
@@ -55,6 +59,7 @@ namespace TweeterApp.Controllers
             var following = await _followRepository.GetFollowingAsync(user.Id);
             if (user == null)
             {
+                _logger.LogInformation("null user");
                 return RedirectToAction("Login", "Account");
             }
             var model = new MyProfileViewModel
@@ -63,6 +68,7 @@ namespace TweeterApp.Controllers
                 Followers = followers.ToList(),
                 Following = following.ToList(),
             };
+            _logger.LogInformation("passed model creation for MyProfile");
             return View(model);
         }
 
@@ -99,7 +105,7 @@ namespace TweeterApp.Controllers
                 var maxFileSizeInBytes = 2 * 1024 * 1024; //2 MB
                 var extention = Path.GetExtension(model.Avatar.FileName).ToLowerInvariant();
 
-                if (allowedExtensions.Contains(extention))
+                if (!allowedExtensions.Contains(extention))
                 {
                     ModelState.AddModelError("Avatar", "only .jpg / .jpeg / .png / .gif files are allowed");
                     return View(model);
@@ -125,15 +131,12 @@ namespace TweeterApp.Controllers
                     Directory.CreateDirectory(uploadsPath);
                 }
                 var fileName = Guid.NewGuid().ToString()+ Path.GetExtension(model.Avatar.FileName);
-                var filePath = Path.Combine(_env.WebRootPath, fileName);
+                var filePath = Path.Combine(uploadsPath, fileName);
                 using(var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await model.Avatar.CopyToAsync(stream);
                 }
-                user.AvatarPath = "/uploads/" + fileName;
-
-                await _userManager.UpdateAsync(user);
-                return RedirectToAction("MyProfile");
+                user.AvatarPath = "/Uploads/" + fileName;
             }
             await _userManager.UpdateAsync(user);
             return RedirectToAction("MyProfile");
