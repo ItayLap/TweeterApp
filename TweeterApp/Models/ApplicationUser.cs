@@ -13,5 +13,7 @@ namespace TweeterApp.Models
         public int GenderId { get; set; }
         public string Bio {  get; set; }
         public string AvatarPath {  get; set; }
+
+        public ICollection<CommentModel> Comments { get; set; }
     }
 }

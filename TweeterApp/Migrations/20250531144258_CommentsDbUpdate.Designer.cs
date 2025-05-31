@@ -12,8 +12,8 @@ using TweeterApp.Data;
 namespace TweeterApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250507154448_UpdatedPostViewModel")]
-    partial class UpdatedPostViewModel
+    [Migration("20250531144258_CommentsDbUpdate")]
+    partial class CommentsDbUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -172,6 +172,14 @@ namespace TweeterApp.Migrations
                     b.Property<bool>("ActiveAccount")
                         .HasColumnType("bit");
 
+                    b.Property<string>("AvatarPath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bio")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -247,6 +255,36 @@ namespace TweeterApp.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("TweeterApp.Models.CommentModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("TweeterApp.Models.FollowModel", b =>
@@ -375,6 +413,25 @@ namespace TweeterApp.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TweeterApp.Models.CommentModel", b =>
+                {
+                    b.HasOne("TweeterApp.Models.PostModel", "Post")
+                        .WithMany("Comments")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TweeterApp.Models.ApplicationUser", "User")
+                        .WithMany("Comments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TweeterApp.Models.FollowModel", b =>
                 {
                     b.HasOne("TweeterApp.Models.ApplicationUser", "Followee")
@@ -422,6 +479,16 @@ namespace TweeterApp.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TweeterApp.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("Comments");
+                });
+
+            modelBuilder.Entity("TweeterApp.Models.PostModel", b =>
+                {
+                    b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618
         }
