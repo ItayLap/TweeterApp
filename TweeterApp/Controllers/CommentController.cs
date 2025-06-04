@@ -102,7 +102,7 @@ namespace TweeterApp.Controllers
             }
             comment.Content = model.Content;
             await _commentRepository.UpdateAsync(comment);
-            return RedirectToAction("Index", "Post", new {id = comment.PostId});
+            return RedirectToAction("Details", "Post", new {id = comment.PostId});
         }
     }
 }

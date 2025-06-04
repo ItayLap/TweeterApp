@@ -9,5 +9,8 @@
         public string LastName {  get; set; }
         public DateTime DateOfBirth { get; set; }
         public int GenderId {  get; set; }
+
+        public IFormFile Avatar { get; set; }
+        public string CurrentAvatarPath { get; set; }
     }
 }

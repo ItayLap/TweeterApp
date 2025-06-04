@@ -21,6 +21,7 @@
                 <button type="submit" class="btn btn-sm btn-danger">Like</button>
             </form>
         }
+        <a asp-action="Details" asp-route-id="@post.Post.Id">Details</a>
         <a asp-action="Edit" asp-route-id="@post.Post.Id">Edit</a>
         <a asp-action="Delete" asp-route-id="@post.Post.Id">Delete</a>
     </div>

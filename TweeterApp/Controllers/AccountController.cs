@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TweeterApp.Models;
 using TweeterApp.Models.ViewModels;
+using TweeterApp.Repository;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TweeterApp.Controllers
@@ -12,6 +13,7 @@ namespace TweeterApp.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private ILogger<AccountController> _logger;
+        private readonly IWebHostEnvironment _env;
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -32,17 +34,56 @@ namespace TweeterApp.Controllers
                     ActiveAccount = true,
                     GenderId = model.GenderId,
                 };
-                var result = await _userManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
+
+                if (model.Avatar != null)
                 {
-                    await _userManager.AddToRoleAsync(user, "User");
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    _logger.LogInformation("User {Email} registered succesfully.", model.Email);
-                    return RedirectToAction("Index", "Home");
-                }
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError("", error.Description);
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    var maxFileSizeInBytes = 2 * 1024 * 1024; //2 MB
+                    var extention = Path.GetExtension(model.Avatar.FileName).ToLowerInvariant();
+
+                    if (!allowedExtensions.Contains(extention))
+                    {
+                        ModelState.AddModelError("Avatar", "only .jpg / .jpeg / .png / .gif files are allowed");
+                        return View(model);
+                    }
+                    if (model.Avatar.Length > maxFileSizeInBytes)
+                    {
+                        ModelState.AddModelError("Avatar", "file size must be less then 2MB");
+                        return View(model);
+                    }
+
+                    if (!string.IsNullOrEmpty(user.AvatarPath) && !user.AvatarPath.Contains("default"))
+                    {
+                        var oldPath = Path.Combine(_env.WebRootPath, user.AvatarPath.TrimStart('/'));
+                        if (System.IO.File.Exists(oldPath))
+                        {
+                            System.IO.File.Delete(oldPath);
+                        }
+                    }
+
+                    var uploadsPath = Path.Combine(_env.WebRootPath, "Uploads");
+                    if (!Directory.Exists(uploadsPath))
+                    {
+                        Directory.CreateDirectory(uploadsPath);
+                    }
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.Avatar.FileName);
+                    var filePath = Path.Combine(uploadsPath, fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.Avatar.CopyToAsync(stream);
+                    }
+                    var result = await _userManager.CreateAsync(user, model.Password);
+                    if (result.Succeeded)
+                    {
+                        await _userManager.AddToRoleAsync(user, "User");
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        _logger.LogInformation("User {Email} registered succesfully.", model.Email);
+                        return RedirectToAction("Index", "Home");
+                    }
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
                 }
             }
             _logger.LogWarning("Model state isn't valid(or other error)");

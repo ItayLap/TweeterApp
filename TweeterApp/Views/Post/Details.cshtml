@@ -6,4 +6,19 @@
 <p><strong>Created by:</strong> @Model.User.UserName @Model.CreatedDate.ToString("g")</p>
 <p><strong>Time of creation</strong> @Model.CreatedDate.ToString("g")</p>
 
-@* add like cont display *@
+<h3>Comments</h3>
+<div id="comments-section">
+    @await Html.PartialAsync("_CommentsPartial", Model.Comments)
+</div>
+
+<hr />
+
+<h4>Add Comment</h4>
+
+<form asp-action="Create" asp-controller="Comment" method="post">
+    <div>
+        <textarea name="content" placeholder="Add a comment..." required></textarea>
+        <span asp-validation-for="Content" class="text-danger"></span>
+    </div>
+    <button type="submit"> add Comment</button>
+</form>
