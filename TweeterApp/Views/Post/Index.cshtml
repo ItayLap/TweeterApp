@@ -21,8 +21,20 @@
                 <button type="submit" class="btn btn-sm btn-danger">Like</button>
             </form>
         }
-        <a asp-action="Details" asp-route-id="@post.Post.Id">Details</a>
+
+        <div class="comments-section">
+            <h5>Comments</h5>
+            @* @foreach(var comment in post.Comments)
+            {
+                <div class="comment">
+                    <strong>@comment.User.UserName</strong>: @comment.Content
+                </div>
+            } *@
+            <a href="@Url.Action("Details","Post",new{id = post.Post.Id})" >Details</a>
+        </div>
+
         <a asp-action="Edit" asp-route-id="@post.Post.Id">Edit</a>
         <a asp-action="Delete" asp-route-id="@post.Post.Id">Delete</a>
+
     </div>
 }

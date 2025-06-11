@@ -14,15 +14,21 @@ namespace TweeterApp.Controllers
     {
         private readonly ICommentRepository _commentRepository;
         private readonly UserManager<ApplicationUser> _UserManager;
+        private readonly IPostRepository _postRepository;
 
-
-        public CommentController(ICommentRepository commentRepository, UserManager<ApplicationUser> userManager)
+        public CommentController(ICommentRepository commentRepository, UserManager<ApplicationUser> userManager, IPostRepository postRepository)
         {
             _commentRepository = commentRepository;
             _UserManager = userManager;
+            _postRepository = postRepository;
         }
         public async Task<IActionResult> GetComments(int postId)
         {
+            var post = _commentRepository.GetByIdAsync(postId);
+            if (post == null)
+            {
+                return NotFound();
+            }
             var comments = await _commentRepository.GetByPostIdAsync(postId);
             return PartialView("_CommentsPartial", comments);
         }
@@ -42,12 +48,14 @@ namespace TweeterApp.Controllers
                 CreatedDate = DateTime.UtcNow,
                 UserId = user.Id
             };
+            
             await _commentRepository.AddAsync(Comment);
-            return RedirectToAction("Details", "Post", new { postId });
+            return RedirectToAction("Details", "Post", new {id = postId });
         }
-        public async Task<IActionResult> DeleteComment(int id)
+        [HttpPost]
+        public async Task<IActionResult> DeleteComment(int commentId,int postId)
         {
-            var comment = await _commentRepository.GetByIdAsync(id);
+            var comment = await _commentRepository.GetByIdAsync(commentId);
             var user = await _UserManager.GetUserAsync(User);
 
             if (comment == null)
@@ -60,15 +68,15 @@ namespace TweeterApp.Controllers
                 return Forbid();
             }
 
-            await _commentRepository.DeleteAsync(comment.Id); //delete atribute comment
-            return RedirectToAction("Index", "Post", new {id = comment.PostId});
+            await _commentRepository.DeleteAsync(commentId); //delete atribute comment
+            return RedirectToAction("Index", "Post", new {postId = comment.PostId});
         }
         [HttpGet]
         public async Task<IActionResult> EditComment(int id)
         {
 
             var comment = await _commentRepository.GetByIdAsync(id);
-            var user = _UserManager.GetUserAsync(User);
+            var user = await _UserManager.GetUserAsync(User);
             if (comment == null)
             {
                 return NotFound();
@@ -90,7 +98,7 @@ namespace TweeterApp.Controllers
         public async Task<IActionResult> EditComment(EditCommentViewModel model)
         {
             var comment = await _commentRepository.GetByIdAsync(model.CommentId);
-            var user = _UserManager.GetUserAsync(User);
+            var user = await _UserManager.GetUserAsync(User);
             if (comment == null)
             {
                 return NotFound();
@@ -102,7 +110,7 @@ namespace TweeterApp.Controllers
             }
             comment.Content = model.Content;
             await _commentRepository.UpdateAsync(comment);
-            return RedirectToAction("Details", "Post", new {id = comment.PostId});
+            return RedirectToAction("Details", "Post", new {postId = model.PostId});
         }
     }
 }

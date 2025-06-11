@@ -19,9 +19,36 @@ namespace TweeterApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            
+
             if (ModelState.IsValid)
             {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                var maxFileSizeInBytes = 2 * 1024 * 1024; //2 MB
+                var extention = Path.GetExtension(model.Avatar.FileName).ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extention))
+                {
+                    ModelState.AddModelError("Avatar", "only .jpg / .jpeg / .png / .gif files are allowed");
+                    return View(model);
+                }
+                if (model.Avatar.Length > maxFileSizeInBytes)
+                {
+                    ModelState.AddModelError("Avatar", "file size must be less then 2MB");
+                    return View(model);
+                }
+
+                var uploadsPath = Path.Combine(_env.WebRootPath, "Uploads");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.Avatar.FileName);
+                var filePath = Path.Combine(uploadsPath, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.Avatar.CopyToAsync(stream);
+                }
+
                 var user = new ApplicationUser
                 {
                     UserName = model.Email,
@@ -33,58 +60,23 @@ namespace TweeterApp.Controllers
                     DateModified = DateTime.Now,
                     ActiveAccount = true,
                     GenderId = model.GenderId,
+                    Bio = "check",
+                    AvatarPath = "/Uploads/" + fileName
                 };
 
-                if (model.Avatar != null)
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
                 {
-                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                    var maxFileSizeInBytes = 2 * 1024 * 1024; //2 MB
-                    var extention = Path.GetExtension(model.Avatar.FileName).ToLowerInvariant();
-
-                    if (!allowedExtensions.Contains(extention))
-                    {
-                        ModelState.AddModelError("Avatar", "only .jpg / .jpeg / .png / .gif files are allowed");
-                        return View(model);
-                    }
-                    if (model.Avatar.Length > maxFileSizeInBytes)
-                    {
-                        ModelState.AddModelError("Avatar", "file size must be less then 2MB");
-                        return View(model);
-                    }
-
-                    if (!string.IsNullOrEmpty(user.AvatarPath) && !user.AvatarPath.Contains("default"))
-                    {
-                        var oldPath = Path.Combine(_env.WebRootPath, user.AvatarPath.TrimStart('/'));
-                        if (System.IO.File.Exists(oldPath))
-                        {
-                            System.IO.File.Delete(oldPath);
-                        }
-                    }
-
-                    var uploadsPath = Path.Combine(_env.WebRootPath, "Uploads");
-                    if (!Directory.Exists(uploadsPath))
-                    {
-                        Directory.CreateDirectory(uploadsPath);
-                    }
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.Avatar.FileName);
-                    var filePath = Path.Combine(uploadsPath, fileName);
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await model.Avatar.CopyToAsync(stream);
-                    }
-                    var result = await _userManager.CreateAsync(user, model.Password);
-                    if (result.Succeeded)
-                    {
-                        await _userManager.AddToRoleAsync(user, "User");
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        _logger.LogInformation("User {Email} registered succesfully.", model.Email);
-                        return RedirectToAction("Index", "Home");
-                    }
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError("", error.Description);
-                    }
+                    await _userManager.AddToRoleAsync(user, "User");
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    _logger.LogInformation("User {Email} registered succesfully.", model.Email);
+                    return RedirectToAction("Index", "Home");
                 }
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+
             }
             _logger.LogWarning("Model state isn't valid(or other error)");
             return View(model);
@@ -123,11 +115,12 @@ namespace TweeterApp.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ILogger<AccountController> logger)
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ILogger<AccountController> logger, IWebHostEnvironment env)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _logger = logger;   
+            _logger = logger;
+            _env = env;
         }
     }
 }

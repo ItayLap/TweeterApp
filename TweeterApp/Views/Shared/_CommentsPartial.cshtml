@@ -7,8 +7,8 @@
         <p>@comment.Content</p>
         @if(User.Identity.IsAuthenticated && comment.User.UserName == User.Identity.Name)
         {
-            <a asp-controller="Comment" asp-action="Edit" asp-route-id="@comment.Id" class="btn btn-primary btn-sm">Edit</a>
-            <a asp-controller="Comment" asp-action="Delete" asp-route-id="@comment.Id" class="btn btn-danger btn-sm">Delete</a>
+            <a asp-controller="Comment" asp-action="EditComment" asp-route-id="@comment.Id" class="btn btn-primary btn-sm">Edit</a>
+            <a asp-controller="Comment" asp-action="DeleteComment" asp-route-id="@comment.Id" class="btn btn-danger btn-sm">Delete</a>
         }
     </div>
 }

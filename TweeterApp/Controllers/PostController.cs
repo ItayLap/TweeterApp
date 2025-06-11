@@ -17,12 +17,13 @@ namespace TweeterApp.Controllers
         public readonly ILikeRepository _likeRepository;
         public readonly ICommentRepository _commentRepository;
 
-        public PostController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, ILogger<PostController> logger, ILikeRepository likeRepository)
+        public PostController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, ILogger<PostController> logger, ILikeRepository likeRepository, ICommentRepository commentRepository)
         {
             _postRepository = postRepository;
             _userManager = userManager;
             _logger = logger;
             _likeRepository = likeRepository;
+            _commentRepository = commentRepository;
         }
 
         public async Task<IActionResult> Index()
@@ -133,7 +134,7 @@ namespace TweeterApp.Controllers
                 return NotFound();
             }
             var user = await _userManager.GetUserAsync(User);
-            var isLiked =await _likeRepository.IsLikedAsync(user.Id, post.Id);
+            var isLiked = await _likeRepository.IsLikedAsync(user.Id, post.Id);
             var LikeCount = await _likeRepository.GetLikeCountAsync(post.Id);
 
             var comments = await _commentRepository.GetByPostIdAsync(id);
