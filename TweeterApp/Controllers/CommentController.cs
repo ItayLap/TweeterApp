@@ -52,8 +52,9 @@ namespace TweeterApp.Controllers
             await _commentRepository.AddAsync(Comment);
             return RedirectToAction("Details", "Post", new {id = postId });
         }
+
         [HttpPost]
-        public async Task<IActionResult> DeleteComment(int commentId,int postId)
+        public async Task<IActionResult> Delete(int commentId)
         {
             var comment = await _commentRepository.GetByIdAsync(commentId);
             var user = await _UserManager.GetUserAsync(User);
@@ -69,10 +70,27 @@ namespace TweeterApp.Controllers
             }
 
             await _commentRepository.DeleteAsync(commentId); //delete atribute comment
-            return RedirectToAction("Index", "Post", new {postId = comment.PostId});
+            return RedirectToAction("Details", "Post", new {id = comment.PostId});
         }
+
         [HttpGet]
-        public async Task<IActionResult> EditComment(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var comment = await _commentRepository.GetByIdAsync(id);
+            var user = await _UserManager.GetUserAsync(User);
+            if (comment == null)
+            {
+                return NotFound();
+            }
+            if (user == null || comment.UserId != user.Id)
+            {
+                return Forbid();
+            }
+            return View(comment);
+        }
+        
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
         {
 
             var comment = await _commentRepository.GetByIdAsync(id);
@@ -90,12 +108,13 @@ namespace TweeterApp.Controllers
             {
                 CommentId = comment.Id,
                 Content = comment.Content,
+                PostId = comment.PostId,
             };
             return View(model);
 
         }
         [HttpPost]
-        public async Task<IActionResult> EditComment(EditCommentViewModel model)
+        public async Task<IActionResult> Edit(EditCommentViewModel model)
         {
             var comment = await _commentRepository.GetByIdAsync(model.CommentId);
             var user = await _UserManager.GetUserAsync(User);
@@ -110,7 +129,7 @@ namespace TweeterApp.Controllers
             }
             comment.Content = model.Content;
             await _commentRepository.UpdateAsync(comment);
-            return RedirectToAction("Details", "Post", new {postId = model.PostId});
+            return RedirectToAction("Details", "Post", new {id = model.PostId});
         }
     }
 }

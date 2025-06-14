@@ -4,7 +4,7 @@
 <a asp-action="Create" class="btn btn-primary">Create post</a>
 @foreach(var post in Model)
 {
-    <div class="post">
+    <div class="post" style="margin-bottom:20px">
         <h4>@post.Post.Title</h4>
         <p>@post.Post.Content</p>
         <p>Likes: @post.LikeCount</p>

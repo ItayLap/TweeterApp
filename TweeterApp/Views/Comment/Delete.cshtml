@@ -1,0 +1,11 @@
+﻿@model TweeterApp.Models.CommentModel
+
+<h2>Delete comment</h2>
+<p>delete comment?</p>
+
+<form asp-action="DeleteComment" method="post">
+    <input type="hidden" name="commentid" value="@Model.Id"/>
+    <input type="hidden" name="postId" value="@Model.PostId"/>
+    <button type="submit">delete</button>
+    <a asp-action="Details" asp-controller="Post" asp-route-id="@Model.PostId">cancel</a>
+</form>

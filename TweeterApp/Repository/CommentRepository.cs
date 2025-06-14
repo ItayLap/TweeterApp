@@ -44,7 +44,7 @@ namespace TweeterApp.Repository
 
         public async Task UpdateAsync(CommentModel comment)
         {
-            _context.Comments.Add(comment);
+            _context.Comments.Update(comment);
             await _context.SaveChangesAsync();
         }
     }

@@ -119,8 +119,19 @@ namespace TweeterApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var user = await _userManager.GetUserAsync(User);
             var post = await _postRepository.GetByIdAsync(id);
-            if (post.UserId != int.Parse(_userManager.GetUserId(User))) return Forbid(); // used to be UserModel
+            if (post.UserId != int.Parse(_userManager.GetUserId(User))) return Forbid();
+            if (post.UserId != user.Id)
+            {
+                return Forbid();
+            }
+
+            var comments =await _commentRepository.GetByPostIdAsync(id);
+            foreach (var comment in comments)
+            {
+                await _commentRepository.DeleteAsync(comment.Id);
+            }
 
             await _postRepository.DeleteAsync(id);
             return RedirectToAction("Index");
