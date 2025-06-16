@@ -10,5 +10,9 @@
             <a asp-controller="Comment" asp-action="Edit" asp-route-id="@comment.Id" class="btn btn-primary btn-sm">Edit</a>
             <a asp-controller="Comment" asp-action="Delete" asp-route-id="@comment.Id" class="btn btn-danger btn-sm">Delete</a>
         }
+        <form method="post" asp-action="ToggleLike" asp-controller="Comment">
+            <input type="hidden" name="commentId" value="@comment.Id"/>
+            <button type="submit">❤️ @comment.Likes.Count</button>
+        </form>
     </div>
 }

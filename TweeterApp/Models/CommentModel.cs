@@ -11,5 +11,7 @@
 
         public int PostId {  get; set; }
         public PostModel Post { get; set; }
+
+        public ICollection <CommentLikeModel> Likes { get; set; }
     }
 }

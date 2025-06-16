@@ -17,6 +17,8 @@ namespace TweeterApp.Data
         public DbSet<LikeModel> Likes { get; set; }
         public DbSet<CommentModel> Comments { get; set; }
 
+        public DbSet<CommentLikeModel> CommentLikes { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder) 
         {
             base.OnModelCreating(modelBuilder);
