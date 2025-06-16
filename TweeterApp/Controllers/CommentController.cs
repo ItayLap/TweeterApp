@@ -54,7 +54,7 @@ namespace TweeterApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Delete(int commentId)
+        public async Task<IActionResult> DeleteConfirmed(int commentId)
         {
             var comment = await _commentRepository.GetByIdAsync(commentId);
             var user = await _UserManager.GetUserAsync(User);
@@ -74,7 +74,7 @@ namespace TweeterApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var comment = await _commentRepository.GetByIdAsync(id);
             var user = await _UserManager.GetUserAsync(User);

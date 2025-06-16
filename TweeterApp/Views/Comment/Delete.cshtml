@@ -3,7 +3,7 @@
 <h2>Delete comment</h2>
 <p>delete comment?</p>
 
-<form asp-action="DeleteComment" method="post">
+<form asp-action="DeleteConfirmed" method="post">
     <input type="hidden" name="commentid" value="@Model.Id"/>
     <input type="hidden" name="postId" value="@Model.PostId"/>
     <button type="submit">delete</button>
