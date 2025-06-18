@@ -36,9 +36,9 @@ namespace TweeterApp.Repository
         public async Task<IEnumerable<CommentModel>> GetByPostIdAsync(int postId)
         {
             return await _context.Comments
-                .Include(c => c.User)
                 .Where(c=>c.PostId == postId)
-                .OrderByDescending(c=>c.CreatedDate)
+                .Include(c => c.User)
+                .Include(c=>c.Likes)
                 .ToListAsync();
         }
 
@@ -53,12 +53,12 @@ namespace TweeterApp.Repository
             return await _context.CommentLikes.CountAsync(I => I.CommentId == commentId);
         }
 
-        public async Task<bool> IsLikedByCurrentUser(int commentId, int userId)
+        public async Task<bool> IsLikedByCurrentUser(int commentId, string userId)
         {
             return await _context.CommentLikes.AnyAsync(I => I.CommentId==commentId && I.UserId == userId);
         }
 
-        public async Task<bool> ToggleLikeAsync(int commentId, int userId)
+        public async Task<bool> ToggleLikeAsync(int commentId, string userId)
         {
             var existingLike = await _context.CommentLikes
                  .FirstOrDefaultAsync(cl => cl.CommentId == commentId && cl.UserId == userId);
