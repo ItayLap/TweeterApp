@@ -12,6 +12,7 @@
         }
         <form method="post" asp-action="ToggleLike" asp-controller="Comment">
             <input type="hidden" name="commentId" value="@comment.Id"/>
+            <input type="hidden" name="postId" value="@comment.PostId"/>
             <button type="submit">❤️ @comment.Likes.Count</button>
         </form>
     </div>

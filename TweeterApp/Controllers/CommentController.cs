@@ -132,18 +132,27 @@ namespace TweeterApp.Controllers
             return RedirectToAction("Details", "Post", new {id = model.PostId});
         }
 
+
         [HttpPost]
-        public async Task<IActionResult> ToggleLike(int commentId)
+        public async Task<IActionResult> ToggleLike(int commentId , int postId)
         {
             var user = await _UserManager.GetUserAsync(User);
             if (user == null)
             {
                 return Forbid();
             }
+            bool liked = await _commentRepository.ToggleLikeAsync(commentId, user.Id);
+            if (liked)
+            {
+                TempData["Notification"] = "liked";
+            }
+            else
+            {
+                TempData["Notification"] = "like removed";
+            }
 
-            await _commentRepository.ToggleLikeAsync(commentId ,user.Id);
-            var comment = await _commentRepository.GetByIdAsync(commentId);
-            return RedirectToAction("Details", "Post" , new {id = comment.PostId});
+                await _commentRepository.ToggleLikeAsync(commentId, user.Id);
+            return RedirectToAction("Details", "Post" , new {id = postId});
         }
     }
 }

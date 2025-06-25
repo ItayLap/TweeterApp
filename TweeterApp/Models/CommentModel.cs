@@ -13,5 +13,7 @@
         public PostModel Post { get; set; }
 
         public ICollection <CommentLikeModel> Likes { get; set; }
+
+        public bool IsLikedByCurrentUser { get; set; }
     }
 }
