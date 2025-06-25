@@ -141,6 +141,8 @@ namespace TweeterApp.Controllers
             {
                 return Forbid();
             }
+
+            await _commentRepository.ToggleLikeAsync(commentId, user.Id);
             bool liked = await _commentRepository.ToggleLikeAsync(commentId, user.Id);
             if (liked)
             {
@@ -150,8 +152,6 @@ namespace TweeterApp.Controllers
             {
                 TempData["Notification"] = "like removed";
             }
-
-                await _commentRepository.ToggleLikeAsync(commentId, user.Id);
             return RedirectToAction("Details", "Post" , new {id = postId});
         }
     }

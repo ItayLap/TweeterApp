@@ -17,7 +17,6 @@ namespace TweeterApp.Data
         public DbSet<LikeModel> Likes { get; set; }
         public DbSet<CommentModel> Comments { get; set; }
         public DbSet<CommentLikeModel> CommentLikes { get; set; }
-
         public DbSet<NotificationModel> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) 
@@ -64,6 +63,17 @@ namespace TweeterApp.Data
                 .WithOne(p => p.Post)
                 .OnDelete(DeleteBehavior.Restrict);//
 
+            modelBuilder.Entity<NotificationModel>()
+                .HasOne(n=> n.Recipiant)
+                .WithMany()
+                .HasForeignKey(n => n.RecipiantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<NotificationModel>()
+                .HasOne(n => n.Sender)
+                .WithMany()
+                .HasForeignKey(n => n.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
             // delete by hand 
             //modelBuilder.Entity<LikeModel>()
             //    .HasOne(I => I.Post)
