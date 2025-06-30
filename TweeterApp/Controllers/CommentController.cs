@@ -6,6 +6,8 @@ using System.Xml.Linq;
 using TweeterApp.Models;
 using TweeterApp.Repository;
 using TweeterApp.Models.ViewModels;
+using TweeterApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace TweeterApp.Controllers
 {
@@ -15,12 +17,14 @@ namespace TweeterApp.Controllers
         private readonly ICommentRepository _commentRepository;
         private readonly UserManager<ApplicationUser> _UserManager;
         private readonly IPostRepository _postRepository;
+        private readonly ApplicationDbContext _context;
 
-        public CommentController(ICommentRepository commentRepository, UserManager<ApplicationUser> userManager, IPostRepository postRepository)
+        public CommentController(ApplicationDbContext context,ICommentRepository commentRepository, UserManager<ApplicationUser> userManager, IPostRepository postRepository)
         {
             _commentRepository = commentRepository;
             _UserManager = userManager;
             _postRepository = postRepository;
+            _context = context;
         }
         public async Task<IActionResult> GetComments(int postId)
         {
@@ -142,16 +146,53 @@ namespace TweeterApp.Controllers
                 return Forbid();
             }
 
-            await _commentRepository.ToggleLikeAsync(commentId, user.Id);
-            bool liked = await _commentRepository.ToggleLikeAsync(commentId, user.Id);
-            if (liked)
+            var like = new CommentLikeModel
             {
-                TempData["Notification"] = "liked";
-            }
-            else
+                CommentId = commentId,
+                UserId = user.Id,
+            };
+
+            _context .CommentLikes.Add(like);
+            await _context.SaveChangesAsync();
+
+            var existingLike = await _context.CommentLikes.
+                FirstOrDefaultAsync(cl => cl.CommentId == commentId &&  cl.UserId == user.Id);
+
+            if (existingLike != null)
             {
-                TempData["Notification"] = "like removed";
+                _context.CommentLikes.Remove(existingLike);
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Details", "Post", new { id = postId });
             }
+
+            var comment =await _context.Comments
+                .Include(c => c.User)
+                .FirstOrDefaultAsync(c => c.Id == commentId);
+
+            if (comment != null && comment.UserId != user.Id)
+            {
+                var notification = new NotificationModel
+                {
+                    RecipiantId = comment.UserId,
+                    SenderId = user.Id,
+                    Message = "user comment",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false,
+                };
+                _context.Notifications.Add(notification);
+
+            }
+            //bool liked = await _commentRepository.ToggleLikeAsync(commentId, user.Id);
+            //if (liked)
+            //{
+            //    TempData["Notification"] = "liked";
+            //}
+            //else
+            //{
+            //    TempData["Notification"] = "like removed";
+            //}
+
+
             return RedirectToAction("Details", "Post" , new {id = postId});
         }
     }

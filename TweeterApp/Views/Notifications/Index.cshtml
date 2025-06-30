@@ -1,0 +1,17 @@
+﻿@model IEnumerable<TweeterApp.Models.NotificationModel>
+<h2>Notifications</h2>
+
+<ul class="list-group">
+    @foreach(var notif in Model)
+    {
+        <li class="list-group-item" @(notif.IsRead ? "" : "fw-bold")> @notif.Message <span class="text-muted">@notif.CreatedAt.ToLocalTime()</span>
+            @if (!notif.IsRead)
+            {
+                <form asp-action="MarkAsRead" method="post" style="display:inline;">
+                    <input type="hidden" name="id" value="@notif.Id"/>
+                    <button class="btn btn-sm btn-outline-seacondary">Mark as read</button>
+                </form>
+            }
+        </li>
+    }
+</ul>
