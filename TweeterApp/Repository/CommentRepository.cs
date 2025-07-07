@@ -68,6 +68,24 @@ namespace TweeterApp.Repository
                 UserId = userId
             };
 
+            var comment = await _context.Comments
+                .Include(c => c.User)
+                .FirstOrDefaultAsync(c => c.Id == commentId);
+
+            if (comment != null && comment.UserId != userId)
+            {
+                var notification = new NotificationModel
+                {
+                    RecipiantId = comment.UserId,
+                    SenderId = userId,
+                    Message = "user comment",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false,
+                };
+                _context.Notifications.Add(notification);
+
+            }
+
             _context.CommentLikes.Add(like);
             await _context.SaveChangesAsync();
             return true;

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using TweeterApp.Controllers;
 using TweeterApp.Data;
 using TweeterApp.Models;
 using TweeterApp.Repository;
@@ -41,6 +42,7 @@ builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<IFollowRepository, FollowRepository>(); 
 builder.Services.AddScoped<ILikeRepository, LikeRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<IUserNotificationRepository, UserNotificationRepository>();
 
 
 

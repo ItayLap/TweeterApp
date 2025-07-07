@@ -146,54 +146,17 @@ namespace TweeterApp.Controllers
                 return Forbid();
             }
 
-            var like = new CommentLikeModel
+            bool liked = await _commentRepository.ToggleLikeAsync(commentId, user.Id);
+            if (liked)
             {
-                CommentId = commentId,
-                UserId = user.Id,
-            };
-
-            _context .CommentLikes.Add(like);
-            await _context.SaveChangesAsync();
-
-            var existingLike = await _context.CommentLikes.
-                FirstOrDefaultAsync(cl => cl.CommentId == commentId &&  cl.UserId == user.Id);
-
-            if (existingLike != null)
+                TempData["Notification"] = "liked";
+            }
+            else
             {
-                _context.CommentLikes.Remove(existingLike);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Details", "Post", new { id = postId });
+                TempData["Notification"] = "like removed";
             }
 
-            var comment =await _context.Comments
-                .Include(c => c.User)
-                .FirstOrDefaultAsync(c => c.Id == commentId);
-
-            if (comment != null && comment.UserId != user.Id)
-            {
-                var notification = new NotificationModel
-                {
-                    RecipiantId = comment.UserId,
-                    SenderId = user.Id,
-                    Message = "user comment",
-                    CreatedAt = DateTime.UtcNow,
-                    IsRead = false,
-                };
-                _context.Notifications.Add(notification);
-
-            }
-            //bool liked = await _commentRepository.ToggleLikeAsync(commentId, user.Id);
-            //if (liked)
-            //{
-            //    TempData["Notification"] = "liked";
-            //}
-            //else
-            //{
-            //    TempData["Notification"] = "like removed";
-            //}
-
-
-            return RedirectToAction("Details", "Post" , new {id = postId});
+            return RedirectToAction("Details","Post",new {id = postId});
         }
     }
 }

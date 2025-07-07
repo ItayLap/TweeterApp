@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<TweeterApp.Models.NotificationModel>
 <h2>Notifications</h2>
 
-<ul class="list-group">
+@* <ul class="list-group">
     @foreach(var notif in Model)
     {
         <li class="list-group-item" @(notif.IsRead ? "" : "fw-bold")> @notif.Message <span class="text-muted">@notif.CreatedAt.ToLocalTime()</span>
@@ -14,4 +14,17 @@
             }
         </li>
     }
-</ul>
+</ul> *@
+@if (!Model.Any())
+{
+    <p>No notifications</p>
+}
+else
+{
+    <ul>
+        @foreach (var notification in Model)
+        {
+            <li>@notification.Message (@notification.CreatedAt.ToString("g"))</li>
+        }
+    </ul>
+}
