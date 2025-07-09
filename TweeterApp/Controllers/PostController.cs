@@ -52,15 +52,32 @@ namespace TweeterApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(PostModel Post)
+        public async Task<IActionResult> Create(PostModel Post, IFormFile imageFile)
         {
             //if (ModelState.IsValid)
             //{
                 var user = await _userManager.GetUserAsync(User);
-                Post.UserId = user.Id;
-                Post.CreatedDate = DateTime.UtcNow;
-                await _postRepository.AddAsync(Post);
-                return RedirectToAction("Index");
+            if (user == null)
+            {
+                return Forbid();
+            }
+            if(imageFile != null && imageFile.Length > 0)
+            {
+                var fileName = Path.GetFileName(imageFile.FileName);
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                Directory.CreateDirectory(uploadsPath);
+                var filePath = Path.Combine(uploadsPath, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(stream);
+                }
+                Post.ImagePath = "/Uploads/" + fileName;
+            }
+
+            Post.UserId = user.Id;
+            Post.CreatedDate = DateTime.UtcNow;
+            await _postRepository.AddAsync(Post);
+            return RedirectToAction("Index");
             //}
            // return View(Post);
         }

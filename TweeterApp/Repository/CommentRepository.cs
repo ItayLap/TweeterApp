@@ -74,11 +74,13 @@ namespace TweeterApp.Repository
 
             if (comment != null && comment.UserId != userId)
             {
+                var sender = await _context.Users.FindAsync(userId);
+
                 var notification = new NotificationModel
                 {
                     RecipiantId = comment.UserId,
                     SenderId = userId,
-                    Message = "user comment",
+                    Message = $"{sender.UserName} liked your comment:\"{comment.Content}\"",
                     CreatedAt = DateTime.UtcNow,
                     IsRead = false,
                 };

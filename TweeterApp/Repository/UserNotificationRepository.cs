@@ -22,6 +22,7 @@ namespace TweeterApp.Repository
         {
             return await _context.Notifications
                 .Where(n => n.RecipiantId == userId)
+                .Include(n=> n.Sender)
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
 

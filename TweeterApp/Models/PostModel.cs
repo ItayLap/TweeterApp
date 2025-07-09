@@ -10,6 +10,8 @@ namespace TweeterApp.Models
         public string Title { get; set; }
         public DateTime CreatedDate { get; set; }
 
+        public string? ImagePath {  get; set; }
+
         //[ForeignKey(User)]
         public int UserId { get; set; }
         public ApplicationUser User { get; set; }
