@@ -3,7 +3,9 @@
 <h2>@Model.Post.Title</h2>
 <p><strong>Title:</strong> @Model.Post.Content</p>
 <p><strong>Content:</strong> @Model.Post.Content</p>
-<p><strong>Image</strong> <br/> <img href="@Model.Post.ImagePath"/></p>
+<p><strong>Image:</strong> <br/> @if(!string.IsNullOrEmpty(Model.Post.ImagePath)){
+    <img src="@Model.Post.ImagePath" alt="Post Image" class="img-fluid rounded mb-3"/>
+}</p>
 <p><strong>Created by:</strong> @Model.Post.User.UserName @Model.Post.CreatedDate.ToString("g")</p>
 <p><strong>Time of creation</strong> @Model.Post.CreatedDate.ToString("g")</p>
 

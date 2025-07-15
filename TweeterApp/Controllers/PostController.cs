@@ -74,8 +74,15 @@ namespace TweeterApp.Controllers
                 Post.ImagePath = "/Uploads/" + fileName;
             }
 
-            Post.UserId = user.Id;
-            Post.CreatedDate = DateTime.UtcNow;
+            var post = new PostModel
+            {
+                Title = Post.Title,
+                Content = Post.Content,
+                CreatedDate = DateTime.UtcNow,
+                UserId = user.Id,
+                ImagePath = Post.ImagePath
+            };
+
             await _postRepository.AddAsync(Post);
             return RedirectToAction("Index");
             //}
