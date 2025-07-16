@@ -1,12 +1,16 @@
 ﻿@model IEnumerable<TweeterApp.Models.ViewModels.PostViewModel>
 
 <h2>Posts</h2>
-<a asp-action="Create" class="btn btn-primary">Create post</a>
+<a asp-action="Create" class="btn btn-primary" style="margin-bottom:30px;">Create post</a>
 @foreach(var post in Model)
 {
-    <div class="post" style="margin-bottom:20px">
-        <h4>@post.Post.Title</h4>
+    <div class="post" style="padding:50px;margin-bottom:30px;border:3px solid red;border-radius:5%;">
+        <h4 style="text-decoration:underline;">@post.Post.Title</h4>
         <p>@post.Post.Content</p>
+        @if (!string.IsNullOrEmpty(post.Post.ImagePath))
+        {
+            <img src="@post.Post.ImagePath" alt="Post Image" class="img-fluid rounded mb-3" style="max-height:300px;width:fit-content" />
+        }
         <p>Likes: @post.LikeCount</p>
         <p>Author:<a asp-controller="Profile" asp-action="ViewProfile" asp-route-userId="@post.Post.UserId">@post.Post.User.UserName</a></p>
 
@@ -21,9 +25,12 @@
                 <button type="submit" class="btn btn-sm btn-danger">Like</button>
             </form>
         }
-
+        <form asp-action="Toggle" asp-controller="SavedPosts" method="post">
+            <input type="hidden" name="postId" value="@post.Post.Id" />
+            <button type="submit" class="btn btn-outline-secondary">Save @(post.IsSavedByCurrentUser ? "Saved" : "Save")</button>
+        </form>
         <div class="comments-section">
-            <h5>Comments</h5>
+            @* <h5>Comments</h5> *@
             @* @foreach(var comment in post.Comments)
             {
                 <div class="comment">

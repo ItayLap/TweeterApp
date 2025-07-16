@@ -1,0 +1,17 @@
+﻿@model List<TweeterApp.Models.PostModel>
+
+<h4>Saved Posts</h4>
+
+@foreach(var post in Model)
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h3>@post.Title</h3>
+            <p>@post.Content</p>
+            @if (!string.IsNullOrEmpty(post.ImagePath))
+            {
+                <img src ="@post.ImagePath" class="img-fluid mt-2"/>
+            }
+        </div>
+    </div>
+}

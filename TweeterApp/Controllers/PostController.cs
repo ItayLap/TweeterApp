@@ -16,14 +16,16 @@ namespace TweeterApp.Controllers
         public readonly ILogger<PostController> _logger;
         public readonly ILikeRepository _likeRepository;
         public readonly ICommentRepository _commentRepository;
+        public readonly ISavedPostsRepository _savedPostsRepository;
 
-        public PostController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, ILogger<PostController> logger, ILikeRepository likeRepository, ICommentRepository commentRepository)
+        public PostController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, ILogger<PostController> logger, ILikeRepository likeRepository, ICommentRepository commentRepository, ISavedPostsRepository savedPostsRepository)
         {
             _postRepository = postRepository;
             _userManager = userManager;
             _logger = logger;
             _likeRepository = likeRepository;
             _commentRepository = commentRepository;
+            _savedPostsRepository = savedPostsRepository;
         }
 
         public async Task<IActionResult> Index()
@@ -35,10 +37,12 @@ namespace TweeterApp.Controllers
             {
                 var isLiked = await _likeRepository.IsLikedAsync(user.Id, post.Id);
                 var likeCount = await _likeRepository.GetLikeCountAsync(post.Id);
+                var isSaved = await _savedPostsRepository.IsSavedAsync(post.Id, user.Id);
 
                 result.Add(new PostViewModel {
                     Post = post,
                     IsLikedByCurrentUser = isLiked,
+                    IsSavedByCurrentUser = isSaved,
                     LikeCount = likeCount
                 });
             }
@@ -83,7 +87,7 @@ namespace TweeterApp.Controllers
                 ImagePath = Post.ImagePath
             };
 
-            await _postRepository.AddAsync(Post);
+            await _postRepository.AddAsync(post);
             return RedirectToAction("Index");
             //}
            // return View(Post);
