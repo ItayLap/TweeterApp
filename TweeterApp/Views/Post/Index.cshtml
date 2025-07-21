@@ -25,10 +25,11 @@
                 <button type="submit" class="btn btn-sm btn-danger">Like</button>
             </form>
         }
-        <form asp-action="Toggle" asp-controller="SavedPosts" method="post">
+        <form action="/SavedPosts/Toggle" method="post">
             <input type="hidden" name="postId" value="@post.Post.Id" />
             <button type="submit" class="btn btn-outline-secondary">Save @(post.IsSavedByCurrentUser ? "Saved" : "Save")</button>
         </form>
+        <a asp-controller="SavedPosts" asp-action="Index">SavedPosts</a>
         <div class="comments-section">
             @* <h5>Comments</h5> *@
             @* @foreach(var comment in post.Comments)

@@ -1,17 +1,30 @@
 ﻿@model List<TweeterApp.Models.PostModel>
+@{
+    ViewData["Title"] = "Saved Posts";
+}
 
-<h4>Saved Posts</h4>
+<h2 class="mb-4">📌 Saved Posts</h2>
 
-@foreach(var post in Model)
+@if (Model == null || !Model.Any())
 {
-    <div class="card mb-3">
-        <div class="card-body">
-            <h3>@post.Title</h3>
-            <p>@post.Content</p>
-            @if (!string.IsNullOrEmpty(post.ImagePath))
-            {
-                <img src ="@post.ImagePath" class="img-fluid mt-2"/>
-            }
-        </div>
+    <div class="alert alert-info">You haven't saved any posts yet.</div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        @foreach (var post in Model)
+        {
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@post.Title</h5>
+                        <p class="card-text">@post.Content</p>
+                    </div>
+                    <div class="card-footer text-muted">
+                        Saved on: @post.CreatedDate.ToShortDateString()
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 }
