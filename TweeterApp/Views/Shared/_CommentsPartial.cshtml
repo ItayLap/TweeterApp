@@ -1,5 +1,5 @@
 ﻿@model IEnumerable<TweeterApp.Models.CommentModel>
-
+@*
 @foreach (var comment in Model)
 {
     <div class="comment">
@@ -16,4 +16,9 @@
             <button type="submit">❤️ @comment.Likes.Count</button>
         </form>
     </div>
+}
+*@
+@foreach(var comment in Model.Where(c => c.ParentCommentId == null))
+{
+    <partial name="_CommentWithReplies" model="comment"/>
 }

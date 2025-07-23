@@ -37,7 +37,7 @@ namespace TweeterApp.Controllers
             return PartialView("_CommentsPartial", comments);
         }
         [HttpPost]
-        public async Task<IActionResult> AddComment(int postId, string content) 
+        public async Task<IActionResult> AddComment(int postId, string content, int? parentComentId) 
         {
             if (string.IsNullOrWhiteSpace(content))
             {
@@ -50,7 +50,8 @@ namespace TweeterApp.Controllers
                 PostId = postId,
                 Content = content,
                 CreatedDate = DateTime.UtcNow,
-                UserId = user.Id
+                UserId = user.Id,
+                ParentCommentId = parentComentId,
             };
             
             await _commentRepository.AddAsync(Comment);

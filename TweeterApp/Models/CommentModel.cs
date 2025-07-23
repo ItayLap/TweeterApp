@@ -14,6 +14,10 @@
 
         public ICollection <CommentLikeModel> Likes { get; set; }
 
+        public int? ParentCommentId { get; set; }
+        public CommentModel ParentComment { get; set; }
+        public List<CommentModel> Replies { get; set; } = new();
+
         public bool IsLikedByCurrentUser { get; set; }
     }
 }

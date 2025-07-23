@@ -40,7 +40,7 @@ namespace TweeterApp.Repository
         {
             if (!await _context.SavedPosts.AnyAsync(s => s.PostId == postId && s.UserId == userId))
             {
-                _context.SavedPosts.Add(new SavedPostsModel { PostId = postId, UserId = userId });
+                _context.SavedPosts.Add(new SavedPostsModel { PostId = postId, UserId = userId});
                 await _context.SaveChangesAsync();
             }
         }

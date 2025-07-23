@@ -38,5 +38,12 @@ namespace TweeterApp.Controllers
             }
             return RedirectToAction("Index", "Post");
         }
+        [HttpPost]
+        public async Task<IActionResult> Delete(int postId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            await _repository.RemoveSavedPostAsync(postId, user.Id);
+            return RedirectToAction("Index");
+        }
     }
 }
