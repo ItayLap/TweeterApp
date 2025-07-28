@@ -20,8 +20,8 @@ namespace TweeterApp.Controllers
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
 
-            if (ModelState.IsValid)
-            {
+            //if (ModelState.IsValid)
+            //{
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
                 var maxFileSizeInBytes = 2 * 1024 * 1024; //2 MB
                 var extention = Path.GetExtension(model.Avatar.FileName).ToLowerInvariant();
@@ -77,7 +77,7 @@ namespace TweeterApp.Controllers
                     ModelState.AddModelError("", error.Description);
                 }
 
-            }
+            //}
             _logger.LogWarning("Model state isn't valid(or other error)");
             return View(model);
         }

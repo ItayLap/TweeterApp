@@ -1,0 +1,10 @@
+﻿<h2>Pending Messages</h2>
+@foreach(var msg in Model)
+{
+    <div>
+        <strong>To whom:</strong> @msg.RecieverId<br />
+        <strong>Subject:</strong> @msg.Subject<br />
+        <p>@msg.Body</p>
+        <hr />
+    </div>
+}

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using TweeterApp.Migrations;
 using TweeterApp.Models;
 using TweeterApp.Models.ViewModels;
 using TweeterApp.Repository;

@@ -37,9 +37,11 @@ namespace TweeterApp.Repository
         public async Task<IEnumerable<CommentModel>> GetByPostIdAsync(int postId)
         {
             return await _context.Comments
-                .Where(c=>c.PostId == postId)
+                .Where(c=>c.PostId == postId && c.ParentCommentId == null)
                 .Include(c => c.User)
-                .Include(c=>c.Likes)
+                .Include(c => c.Likes)
+                .Include(c => c.Replies).ThenInclude(r => r.User)
+                .Include(c => c.Replies).ThenInclude(r => r.Likes)
                 .ToListAsync();
         }
 

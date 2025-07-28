@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using TweeterApp.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace TweeterApp.Data
 {
@@ -19,6 +20,7 @@ namespace TweeterApp.Data
         public DbSet<CommentLikeModel> CommentLikes { get; set; }
         public DbSet<NotificationModel> Notifications { get; set; }
         public DbSet<SavedPostsModel> SavedPosts { get; set; }
+        public DbSet<MessageModel> Messages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) 
         {
@@ -95,7 +97,19 @@ namespace TweeterApp.Data
                 .HasOne(c => c.ParentComment)
                 .WithMany(c => c.Replies)
                 .HasForeignKey(c =>c.ParentCommentId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MessageModel>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey( m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MessageModel>()
+                .HasOne(m => m.Receiver) 
+                .WithMany()
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
 
                 // delete by hand 
             //modelBuilder.Entity<LikeModel>()

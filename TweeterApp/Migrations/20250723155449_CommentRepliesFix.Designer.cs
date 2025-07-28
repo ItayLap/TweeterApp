@@ -12,8 +12,8 @@ using TweeterApp.Data;
 namespace TweeterApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250709155451_PostImagsAdded")]
-    partial class PostImagsAdded
+    [Migration("20250723155449_CommentRepliesFix")]
+    partial class CommentRepliesFix
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -298,6 +298,9 @@ namespace TweeterApp.Migrations
                     b.Property<bool>("IsLikedByCurrentUser")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("ParentCommentId")
+                        .HasColumnType("int");
+
                     b.Property<int>("PostId")
                         .HasColumnType("int");
 
@@ -305,6 +308,8 @@ namespace TweeterApp.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentCommentId");
 
                     b.HasIndex("PostId");
 
@@ -424,6 +429,32 @@ namespace TweeterApp.Migrations
                     b.ToTable("Posts");
                 });
 
+            modelBuilder.Entity("TweeterApp.Models.SavedPostsModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SavedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SavedPosts");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
@@ -496,6 +527,11 @@ namespace TweeterApp.Migrations
 
             modelBuilder.Entity("TweeterApp.Models.CommentModel", b =>
                 {
+                    b.HasOne("TweeterApp.Models.CommentModel", "ParentComment")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentCommentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("TweeterApp.Models.PostModel", "Post")
                         .WithMany("Comments")
                         .HasForeignKey("PostId")
@@ -507,6 +543,8 @@ namespace TweeterApp.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("ParentComment");
 
                     b.Navigation("Post");
 
@@ -580,6 +618,25 @@ namespace TweeterApp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TweeterApp.Models.SavedPostsModel", b =>
+                {
+                    b.HasOne("TweeterApp.Models.PostModel", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TweeterApp.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TweeterApp.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Comments");
@@ -588,6 +645,8 @@ namespace TweeterApp.Migrations
             modelBuilder.Entity("TweeterApp.Models.CommentModel", b =>
                 {
                     b.Navigation("Likes");
+
+                    b.Navigation("Replies");
                 });
 
             modelBuilder.Entity("TweeterApp.Models.PostModel", b =>
