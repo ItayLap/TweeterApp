@@ -1,8 +1,9 @@
-﻿<h2>Pending Messages</h2>
+﻿@model IEnumerable<TweeterApp.Models.MessageModel>
+<h2>Pending Messages</h2>
 @foreach(var msg in Model)
 {
     <div>
-        <strong>To whom:</strong> @msg.RecieverId<br />
+        <strong>To whom:</strong> @msg.ReceiverId<br />
         <strong>Subject:</strong> @msg.Subject<br />
         <p>@msg.Body</p>
         <hr />

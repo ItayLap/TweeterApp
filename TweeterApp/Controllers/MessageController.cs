@@ -44,6 +44,12 @@ namespace TweeterApp.Controllers
         public async Task<IActionResult> Send(string recieverEmail, string subject, string body)
         {
             var sender = await _userManager.GetUserAsync(User);
+            if (string.IsNullOrEmpty(recieverEmail))
+            {
+                ModelState.AddModelError("", "Receiver email is required");
+                return View();
+            }
+
             var reciever = await _userManager.FindByEmailAsync(recieverEmail);
             if (reciever == null)
             {
