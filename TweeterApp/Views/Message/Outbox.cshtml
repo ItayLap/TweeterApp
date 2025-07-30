@@ -1,4 +1,5 @@
-﻿@model IEnumerable<TweeterApp.Models.MessageModel>
+﻿@* @model IEnumerable<TweeterApp.Models.MessageModel>
+    @model
 <h2>Pending Messages</h2>
 @foreach(var msg in Model)
 {
@@ -8,4 +9,31 @@
         <p>@msg.Body</p>
         <hr />
     </div>
+} *@
+@model List<TweeterApp.Models.MessageModel>
+
+@{
+    ViewData["Title"] = "Outbox";
 }
+
+<h2>Outbox</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>To</th>
+            <th>Message</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var message in Model)
+        {
+            <tr>
+                <td>@message.Receiver?.UserName (@message.ReceiverId)</td>
+                <td>@message.Body</td>
+                <td>@message.SentAt.ToString("g")</td>
+            </tr>
+        }
+    </tbody>
+</table>

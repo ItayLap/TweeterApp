@@ -19,7 +19,8 @@ namespace TweeterApp.Controllers
         }
         public async Task<IActionResult> Inbox()
         {
-            var userId = _userManager.GetUserId(User);
+            var user = _userManager.GetUserAsync(User);
+            var userId = user.Id;
             var messages = await _context.Messages
                 .Where(m=> m.ReceiverId == userId)
                 .OrderByDescending(m => m.SentAt)
@@ -28,7 +29,8 @@ namespace TweeterApp.Controllers
         }
         public async Task<IActionResult> Outbox()
         {
-            var userId = _userManager.GetUserId(User);
+            var user = _userManager.GetUserAsync(User);
+            var userId = user.Id;
             var messages = await _context.Messages
                 .Where(m => m.SenderId == userId)
                 .OrderByDescending(m => m.SentAt)
@@ -41,16 +43,16 @@ namespace TweeterApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Send(string recieverEmail, string subject, string body)
+        public async Task<IActionResult> Send(string reciverEmail, string subject, string body)
         {
             var sender = await _userManager.GetUserAsync(User);
-            if (string.IsNullOrEmpty(recieverEmail))
+            if (string.IsNullOrEmpty(reciverEmail))
             {
                 ModelState.AddModelError("", "Receiver email is required");
                 return View();
             }
 
-            var reciever = await _userManager.FindByEmailAsync(recieverEmail);
+            var reciever = await _userManager.FindByEmailAsync(reciverEmail);
             if (reciever == null)
             {
                 ModelState.AddModelError("", "User not found");
@@ -58,8 +60,8 @@ namespace TweeterApp.Controllers
             }
             var Message = new MessageModel
             {
-                SenderId = sender.Id.ToString(),
-                ReceiverId = reciever.Id.ToString(),
+                SenderId = sender.Id,
+                ReceiverId = reciever.Id,
                 Subject = subject,
                 Body = body,
                 SentAt = DateTime.UtcNow
@@ -68,6 +70,5 @@ namespace TweeterApp.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction("Outbox");
         }
-
     }
 }

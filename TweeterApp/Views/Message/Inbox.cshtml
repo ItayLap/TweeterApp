@@ -3,7 +3,7 @@
 @foreach(var msg in Model)
 {
     <div>
-        <strong>From:</strong> @msg.SenderId <br />
+        <strong>From:</strong> @msg.Sender?.UserName <br />
         <strong>Subject:</strong> @msg.Subject <br />
         <p>@msg.Body</p>
         <hr />

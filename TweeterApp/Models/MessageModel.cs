@@ -5,8 +5,8 @@ namespace TweeterApp.Models
     public class MessageModel
     {
         public int Id { get; set; }
-        public string SenderId {  get; set; }
-        public string ReceiverId {  get; set; }
+        public int SenderId {  get; set; }
+        public int ReceiverId {  get; set; }
 
         public string Subject { get; set; }
         public string Body { set; get; }
@@ -16,7 +16,7 @@ namespace TweeterApp.Models
 
         public bool IsRead { get; set; } = false;
 
-        public IdentityUser Sender { get; set; }
-        public IdentityUser Receiver { get; set; }
+        public ApplicationUser Sender { get; set; }
+        public ApplicationUser Receiver { get; set; }
     }
 }
