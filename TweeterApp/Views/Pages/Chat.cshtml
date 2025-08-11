@@ -1,0 +1,86 @@
+﻿@page
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+<div class="chat-container">
+    <div class="chat-header">
+        <h2>chat</h2>
+    </div>
+    <div class="chat-input">
+        <label>reciver</label>
+        <input id="UserInput" type="text" placeholder="User name"/>
+
+        <label>message</label>
+        <input id="MessageInput" type="text">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    <ul id="messageList">
+        <li></li>
+    </ul>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script src="/chat.js"></script>
+
+<style>
+    .chat-container{
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        border:1px solid #ccc;
+        border-radius: 12px;
+        background-color:#f8f9fa;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        font-family: Arial, Sans-Serif;
+    }
+    .chat-header{
+        text-align:center;
+        margin-bottom:15px;
+    }
+    .chat-input{
+        display: flex;
+        gap: 10px;
+        margin-bottom:15px;
+    }
+    .chat-input input{
+        flex:;
+        padding:10px;
+        border-radius:8px;
+        border: 1px solid #ccc;
+        font-size: 14px
+    }
+    .chat-input button{
+        padding:10px 15px;
+        border: none;
+        background-color: #007bff;
+        color:white;
+        cursor: pointer;
+        border-radius:8px;
+        transition: background-color 0.3s;
+    }
+    #messageList{
+        list-style-type:none;
+        padding:0;
+        max-height: 400px;
+        overflow-y:auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .message{
+        max-width: 70%;
+        padding: 10px;
+        border-radius:10px;
+        word-wrap: break-word;
+        font-size: 14px;
+        position: relative;
+    }
+    .message.from-me{
+        align-self:flex-end;
+        background-color:#d1e7dd;
+        text-align: right
+    }
+    .message.from-others{
+        align-self:flex-start;
+        background-color: #fff;
+        border: 1px solid #ccc
+    }
+</style>
