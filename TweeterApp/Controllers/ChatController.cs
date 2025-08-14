@@ -17,6 +17,13 @@ namespace TweeterApp.Controllers
             return View();
         }
 
+        [HttpGet("/chat/with/{userName}")]
+        public IActionResult With(string userName)
+        {
+            if(string.IsNullOrEmpty(userName))return NotFound();
+            ViewData["OtherUser"] = userName;
+            return View("Chat");
+        }
         //public async Task<IActionResult> Index()
         //{
         //    var messages = await _context.Messages

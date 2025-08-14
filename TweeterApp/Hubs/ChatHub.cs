@@ -16,16 +16,16 @@ namespace TweeterApp.Hubs
         }
         public override Task OnDisconnectedAsync(Exception exeption)
         {
-            var username = Context.User?.Identity?.Name;
+            var username = Context.User?.Identity.Name;
             if (!string.IsNullOrEmpty(username))
             {
                 _conections.Remove(username);
             }
             return base.OnDisconnectedAsync(exeption);
         }
-        public async Task SendPrivateMessage(string toEmail,string message)
+        public async Task SendMessage(string toEmail,string message)
         {
-            var fromUsername = Context.User?.Identity?.Name;
+            var fromUsername = Context.User?.Identity.Name ?? "Anonymous";
             if (_conections.TryGetValue(toEmail, out var connectionId))          
             {
                 await Clients.Client(connectionId).SendAsync("RecieveMessage", fromUsername, message);
