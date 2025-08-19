@@ -1,86 +1,133 @@
-﻿@page
-@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize]
+﻿@{
+    var otherUser = (string)(ViewData["OtherUser"] ?? "");
+    var currentUser = User?.Identity?.Name ?? "";
+    ViewData["Title"] = $"Чат с {otherUser}";
+}
 <div class="chat-container">
     <div class="chat-header">
-        <h2>chat</h2>
+        <h2>Диалог с @otherUser</h2>
+        <div id="presence" class="presence">offline</div>
     </div>
-    <div class="chat-input">
-        <label>reciver</label>
-        <input id="UserInput" type="text" placeholder="User name"/>
 
-        <label>message</label>
-        <input id="MessageInput" type="text">
-        <button onclick="sendMessage()">Send</button>
+    <ul id="messagesList" class="messages"></ul>
+
+    <div class="chat-inputs">
+        <input type="text" id="messageInput" placeholder="Сообщение" />
+        <button id="sendBtn" type="button">Отправить</button>
     </div>
-    <ul id="messageList">
-        <li></li>
-    </ul>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-<script src="/chat.js"></script>
 
 <style>
-    .chat-container{
+    .chat-container {
         max-width: 600px;
         margin: 0 auto;
         padding: 20px;
-        border:1px solid #ccc;
-        border-radius: 12px;
-        background-color:#f8f9fa;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        font-family: Arial, Sans-Serif;
-    }
-    .chat-header{
-        text-align:center;
-        margin-bottom:15px;
-    }
-    .chat-input{
-        display: flex;
-        gap: 10px;
-        margin-bottom:15px;
-    }
-    .chat-input input{
-        flex:;
-        padding:10px;
-        border-radius:8px;
         border: 1px solid #ccc;
-        font-size: 14px
+        border-radius: 12px;
+        background-color: #f8f9fa;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        font-family: Arial, sans-serif;
     }
-    .chat-input button{
-        padding:10px 15px;
-        border: none;
-        background-color: #007bff;
-        color:white;
-        cursor: pointer;
-        border-radius:8px;
-        transition: background-color 0.3s;
+
+    .chat-header {
+        text-align: center;
+        margin-bottom: 15px;
     }
-    #messageList{
-        list-style-type:none;
-        padding:0;
+
+    .presence {
+        display: inline-block;
+        margin-top: 6px;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+        .presence.online {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .presence.offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+    .messages {
+        list-style: none;
+        padding: 0;
         max-height: 400px;
-        overflow-y:auto;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
         gap: 10px;
+        margin: 0 0 15px 0;
     }
-    .message{
+
+    .message {
         max-width: 70%;
-        padding: 10px;
-        border-radius:10px;
-        word-wrap: break-word;
-        font-size: 14px;
+        padding: 0;
+        border-radius: 10px;
         position: relative;
     }
-    .message.from-me{
-        align-self:flex-end;
-        background-color:#d1e7dd;
-        text-align: right
+
+        .message.from-me {
+            align-self: flex-end;
+        }
+
+        .message.from-others {
+            align-self: flex-start;
+        }
+
+    .bubble {
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 10px;
     }
-    .message.from-others{
-        align-self:flex-start;
-        background-color: #fff;
-        border: 1px solid #ccc
+
+    .from-me .bubble {
+        background: #d1e7dd;
     }
+
+    .text {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-size: 14px;
+    }
+
+    .meta {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #6b7280;
+        text-align: right;
+    }
+
+    .chat-inputs {
+        display: flex;
+        gap: 10px;
+    }
+
+        .chat-inputs input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        .chat-inputs button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color .3s;
+        }
+
+            .chat-inputs button:hover {
+                background-color: #0056b3;
+            }
 </style>

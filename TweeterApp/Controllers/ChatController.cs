@@ -17,7 +17,7 @@ namespace TweeterApp.Controllers
             return View();
         }
 
-        [HttpGet("/chat/with/{userName}")]
+        [HttpGet("/chat/with/{**userName}")]
         public IActionResult With(string userName)
         {
             if(string.IsNullOrEmpty(userName))return NotFound();
