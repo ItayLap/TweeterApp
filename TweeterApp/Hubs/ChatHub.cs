@@ -1,18 +1,20 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.VisualBasic;
 using System.Collections.Concurrent;
 
 namespace TweeterApp.Hubs
 {
+    [Authorize]
     public class ChatHub : Hub
     {
-        private static readonly ConcurrentDictionary<string, string> _connections = new();
+        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _connections = new();
         public override Task OnConnectedAsync()
         {
             var username = Context.User?.Identity?.Name;
             if(!string.IsNullOrEmpty(username))
             {
-                _connections[username] = Context.ConnectionId;
+                _connections.GetOrAdd(username, _ => new())[Context.ConnectionId] = 1;
                 return base.OnConnectedAsync();
             }
             return base.OnConnectedAsync();
@@ -37,7 +39,7 @@ namespace TweeterApp.Hubs
             var fromUsername = Context.User.Identity.Name ?? "Anonymous";
             if (string.IsNullOrWhiteSpace(toEmail) || string.IsNullOrWhiteSpace(message)) return;
             var group = DialougGroup(fromUsername, toEmail);
-            await Clients.Group(group).SendAsync("ReciveMessage", fromUsername, message, DateTimeOffset.UtcNow);
+            await Clients.Group(group).SendAsync("ReceiveMessage", fromUsername, message, DateTimeOffset.UtcNow);
         }
         public async Task JoinDialouge(string otherUsername)
         {

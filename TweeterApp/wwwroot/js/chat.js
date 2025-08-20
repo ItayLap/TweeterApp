@@ -1,6 +1,16 @@
-﻿const connection = new signalR.HubConnectionBuilder()
+﻿<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+const otherUser = "@otherUser";
+const currentUser = "@currentUser";
+
+const connection = new signalR.HubConnectionBuilder()
     .withUrl("/chatHub")
+    .withAutomaticReconnect()
     .build();
+
+connection.onreconnecting(() => console.warn("Reconnecting..."));
+connection.onreconnected(() => console.warn("Reconnected"));
+connection.onclose(err => console.error("Closed:", err));
+
 connection.on("ReceiveMessage", function (user, message) {
     const li = document.createElement("li");
     li.textContent = `${user}:${message}`;
@@ -18,17 +28,7 @@ function sendMessage() {
     });
 }
 
-const otherUser = "@otherUser";
-const currentUser = "@currentUser";
 
-const connection = new signalR.HubConnectionBuilder()
-    .withUrl("/chatHub")
-    .withAutomaticReconnect()
-    .build();
-
-connection.onreconnecting(() => console.warn("Reconnecting..."));
-connection.onreconnected(() => console.warn("Reconnected"));
-connection.onclose(err => console.error("Closed:", err));
 
 const messagesList = document.getElementById("messagesList");
 const messageInput = document.getElementById("messageInput");
@@ -67,10 +67,10 @@ connection.on("PresenceChanged", (user, state) => {
 
 connection.start()
     .then(() => {
-        console.log("Connected, JoinDialog:", otherUser);
-        return connection.invoke("JoinDialog", otherUser);
+        console.log("Connected, JoinDialoug:", otherUser);
+        return connection.invoke("JoinDialoug", otherUser);
     })
-    .then(() => console.log("JoinDialog done"))
+    .then(() => console.log("JoinDialoug done"))
     .catch(err => console.error("Start/Join error:", err));
 
 async function sendMessage() {

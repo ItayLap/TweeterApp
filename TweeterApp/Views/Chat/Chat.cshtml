@@ -3,6 +3,9 @@
     var currentUser = User?.Identity?.Name ?? "";
     ViewData["Title"] = $"Чат с {otherUser}";
 }
+<script src="~/js/chat.js"></script>
+<script src="~/lib/signalr/signalr.js"></script>
+
 <div class="chat-container">
     <div class="chat-header">
         <h2>Диалог с @otherUser</h2>
