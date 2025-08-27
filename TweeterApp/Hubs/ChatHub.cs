@@ -9,10 +9,17 @@ namespace TweeterApp.Hubs
     public class ChatHub : Hub
     {
         private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _connections = new();
+        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _reactions = new();
+        private static readonly ConcurrentDictionary<string, string> _userReactionByMessage = new();
+
+        private static string ReactionKey(string messageId, string emoji) => $"{messageId}::{emoji}";
+        private static string UserMsgKey(string messageId, string user) => $"{messageId}::{user}";
+
+
         public override Task OnConnectedAsync()
         {
             var username = Context.User?.Identity?.Name;
-            if(!string.IsNullOrEmpty(username))
+            if(username != null)
             {
                 _connections.GetOrAdd(username, _ => new())[Context.ConnectionId] = 1;
                 return base.OnConnectedAsync();
@@ -22,7 +29,7 @@ namespace TweeterApp.Hubs
         public override Task OnDisconnectedAsync(Exception exeption)
         {
             var username = Context.User.Identity.Name;
-            if (!string.IsNullOrEmpty(username))
+            if (username != null)
             {
                 _connections.TryRemove(username, out _);
             }
@@ -41,7 +48,7 @@ namespace TweeterApp.Hubs
             var group = DialougGroup(fromUsername, toEmail);
             await Clients.Group(group).SendAsync("ReceiveMessage", fromUsername, message, DateTimeOffset.UtcNow);
         }
-        public async Task JoinDialouge(string otherUsername)
+        public async Task JoinDialoug(string otherUsername)
         {
             var me = Context.User?.Identity?.Name;
             if (string.IsNullOrWhiteSpace(me) || string.IsNullOrWhiteSpace(otherUsername)) return;
@@ -56,6 +63,55 @@ namespace TweeterApp.Hubs
             var group = DialougGroup(me, otherUsername);
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, group);
             await Clients.Group(group).SendAsync("PresenceChanged", me, "offline");
+        }
+        public async Task ToggleReaction(string toUsername, string messageId, string emoji)
+        {
+            var me = Context.User?.Identity?.Name?.Trim();
+            if (string.IsNullOrWhiteSpace(me) || string.IsNullOrWhiteSpace(toUsername) ||string.IsNullOrWhiteSpace(messageId)|| string.IsNullOrWhiteSpace(emoji)) return;
+            var group =  DialougGroup(me, toUsername);
+            var muKey =  UserMsgKey(messageId, me);
+            if (_userReactionByMessage.TryGetValue(muKey, out var existingEmoji))
+            {
+                if (existingEmoji == emoji)
+                {
+                    var users = _reactions.GetOrAdd(ReactionKey(messageId, emoji),_ => new ConcurrentDictionary<string, byte>());
+                    users.TryRemove(me, out _);
+                    _userReactionByMessage.TryRemove(muKey, out _);
+
+                    var count = users.Count;
+                    if (count == 0) _reactions.TryRemove(ReactionKey(messageId, emoji), out _);
+
+                    await Clients.Group(group).SendAsync("ReactionUpdated", new { messageId, emoji, user = me, added = false});
+                }
+                else
+                {
+                    var oldKey =ReactionKey(messageId, existingEmoji);
+                    if(_reactions.TryGetValue(oldKey, out var oldUsers))
+                    {
+                        oldUsers.TryRemove(me, out _);
+                        var oldCount = oldUsers.Count;
+                        if(oldCount == 0) _reactions.TryRemove(oldKey, out _);
+
+                        await Clients.Group(group).SendAsync("ReactionUpdated", new {messageId, emoji, count = oldCount, user = me, added = false });
+                    }
+                    var newUsers = _reactions.GetOrAdd(ReactionKey(messageId, emoji), _ => new ConcurrentDictionary<string, byte>());
+                    newUsers[me] = 1;
+                    _userReactionByMessage[muKey] = emoji;
+                    var newCount = newUsers.Count;
+
+                    await Clients.Group(group).SendAsync("ReactionUpdated", new {messageId, emoji, count = newCount, user = me, added = true });
+                }
+
+            }
+            else
+            {
+                var users = _reactions.GetOrAdd(ReactionKey(messageId, emoji), _ => new ConcurrentDictionary<string, byte>());
+                users[me] = 1;
+                _userReactionByMessage[muKey] = emoji;
+                var count = users.Count;
+
+                await Clients.Group(group).SendAsync("ReactionUpdated", new { messageId, emoji, count, user = me, added = true });
+            }
         }
     }
 }

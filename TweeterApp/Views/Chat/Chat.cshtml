@@ -35,25 +35,6 @@
     connection.onreconnected(() => console.warn("Reconnected"));
     connection.onclose(err => console.error("Closed:", err));
 
-    connection.on("ReceiveMessage", function (user, message) {
-        const li = document.createElement("li");
-        li.textContent = `${user}:${message}`;
-
-        document.getElementById("messagesList").appendChild(li);
-    });
-    connection.start().catch(function (err) {
-        return console.error(err.toString());
-    });
-    function sendMessage() {
-        const user = document.getElementById("userInput").value;
-        const message = document.getElementById("messageInput").value;
-        connection.invoke("SendMessage", user, message).catch(function (err) {
-            return console.error(err.toString());
-        });
-    }
-
-
-
     const messagesList = document.getElementById("messagesList");
     const messageInput = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
@@ -73,6 +54,13 @@
         <div class="bubble">
           <div class="text">${escapeHtml(message)}</div>
           <div class="meta">${escapeHtml(user)} · ${time}</div>
+        </div>
+        <div class="reactions"></div>
+        <div class="react-bar">
+          <button class="r" type="button" data-emoji="👍">👍</button>
+          <button class="r" type="button" data-emoji="❤️">❤️</button>
+          <button class="r" type="button" data-emoji="😂">😂</button>
+          <button class="r" type="button" data-emoji="🔥">🔥</button>
         </div>`;
         messagesList.appendChild(li);
         messagesList.scrollTop = messagesList.scrollHeight;
@@ -102,7 +90,7 @@
         if (!text) return;
         try {
             await connection.invoke("SendMessage", otherUser, text);
-            appendMessage(currentUser, text, new Date().toISOString());
+            // appendMessage(currentUser, text, new Date().toISOString());
             messageInput.value = "";
             messageInput.focus();
         } catch (err) {
@@ -120,6 +108,41 @@
     window.addEventListener("beforeunload", () => {
         connection.invoke("LeaveDialoug", otherUser).catch(() => { });
     });
+
+    // reactions //
+
+    connection.on("ReactionUpdated",({messageId, emoji, count}) => {
+        const li =messagesList.querySelector(`li.message[data-id="${messageId}"]`);
+        if(!li) return;
+        const reactions = li.querySelector(".reactions");
+        let chip = reactions.querySelector(`reaction-chip[data-emoji = ${emoji}]`);
+        if(!chip)
+        {
+            chip = document.createElement("span");
+            chip.className = "reaction-chip";
+            chip.dataset.emoji = emoji;
+            reactions.appendChild(chip);
+        }
+        if(count > 0){
+            chip.textContent = `${emoji}${count}`;
+            chip.style.display = "inline-flex";
+
+        }else{
+            chip.remove();
+        }
+    })
+
+    messagesList.addEventListener("click", (e) =>{
+        const btn = e.target.closest(".r");
+        if(!btn)return;
+        const li = e.target.closest("li.message");
+        const messageId = li?.dataset.id;
+        if(!messageId) return;
+        const emoji = btn.dataset.emojil;
+        connection.invoke("ToggleReaction", otherUser, messageId, emoji)
+            .catch(err => console.error("ToggleReaction error: err"));
+    });
+
 </script>
 <style>
     .chat-container {

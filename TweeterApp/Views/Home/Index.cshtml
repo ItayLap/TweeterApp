@@ -1,9 +1,37 @@
-﻿@model TweeterApp.Models.PostModel
+﻿@using TweeterApp.Controllers
+@model StartChatViewModel
 @{
     ViewData["Title"] = "Home Page";
+    var isAuthenticated = User.Identity.IsAuthenticated;
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about</p>
+    <h1 class="display-4 mb-4">Welcome to Tweeter</h1>
+    <p class="lead mb-5">see what people are posting!</p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+        @if (!isAuthenticated)
+        {
+            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary btn-lg">Login</a>
+            <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg">Sign Up</a>
+        }
+        else
+        {
+            <p class="text-success">You're logged in as <strong>@User.Identity.Name</strong></p>
+        }
+    </div>
+</div>
+<div class=" card chat-card mt-5">
+    <h2> Start dialouge</h2>
+    <form asp-action="StartChat" method="post" class="start-chat-form">
+        @Html.AntiForgeryToken()
+        <label for="recipient">Reciver</label>
+        <select id="recipient" name="SelectedEmail" class="select">
+        <option value="">-Choose User</option>
+        @foreach(var u in Model.Users)
+        {
+            <option value="@u">@u</option>
+        }
+        </select>
+        <button type="submit" class="btn-chat">Go to chat</button>
+    </form>
 </div>
