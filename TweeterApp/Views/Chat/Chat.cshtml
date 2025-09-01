@@ -46,9 +46,10 @@
         return div.innerHTML;
     }
 
-    function appendMessage(user, message, ts) {
+    function appendMessage(id, user, message, ts) {
         const li = document.createElement("li");
         li.classList.add("message", user === currentUser ? "from-me" : "from-others");
+        if(id) li.dataset.id =id;
         const time = ts ? new Date(ts).toLocaleTimeString() : "";
         li.innerHTML = `
         <div class="bubble">
@@ -66,8 +67,8 @@
         messagesList.scrollTop = messagesList.scrollHeight;
     }
 
-    connection.on("ReceiveMessage", (user, message, timestamp) => {
-        appendMessage(user, message, timestamp);
+    connection.on("ReceiveMessage", (id ,user, message, timestamp) => {
+        appendMessage(id, user, message, timestamp);
     });
 
     connection.on("PresenceChanged", (user, state) => {
@@ -112,7 +113,7 @@
     // reactions //
 
     connection.on("ReactionUpdated",({messageId, emoji, count}) => {
-        const li =messagesList.querySelector(`li.message[data-id="${messageId}"]`);
+        const li = messagesList.querySelector(`li.message[data-id="${messageId}"]`);
         if(!li) return;
         const reactions = li.querySelector(".reactions");
         let chip = reactions.querySelector(`reaction-chip[data-emoji = ${emoji}]`);
@@ -138,9 +139,9 @@
         const li = e.target.closest("li.message");
         const messageId = li?.dataset.id;
         if(!messageId) return;
-        const emoji = btn.dataset.emojil;
+        const emoji = btn.dataset.emoji;
         connection.invoke("ToggleReaction", otherUser, messageId, emoji)
-            .catch(err => console.error("ToggleReaction error: err"));
+            .catch(err => console.error("ToggleReaction error:", err));
     });
 
 </script>

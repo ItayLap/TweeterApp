@@ -46,7 +46,8 @@ namespace TweeterApp.Hubs
             var fromUsername = Context.User.Identity.Name ?? "Anonymous";
             if (string.IsNullOrWhiteSpace(toEmail) || string.IsNullOrWhiteSpace(message)) return;
             var group = DialougGroup(fromUsername, toEmail);
-            await Clients.Group(group).SendAsync("ReceiveMessage", fromUsername, message, DateTimeOffset.UtcNow);
+            var id = Guid.NewGuid().ToString("N");
+            await Clients.Group(group).SendAsync("ReceiveMessage",id, fromUsername, message, DateTimeOffset.UtcNow);
         }
         public async Task JoinDialoug(string otherUsername)
         {
@@ -81,7 +82,7 @@ namespace TweeterApp.Hubs
                     var count = users.Count;
                     if (count == 0) _reactions.TryRemove(ReactionKey(messageId, emoji), out _);
 
-                    await Clients.Group(group).SendAsync("ReactionUpdated", new { messageId, emoji, user = me, added = false});
+                    await Clients.Group(group).SendAsync("ReactionUpdated", new { messageId, emoji, count, user = me, added = false});
                 }
                 else
                 {
@@ -92,8 +93,9 @@ namespace TweeterApp.Hubs
                         var oldCount = oldUsers.Count;
                         if(oldCount == 0) _reactions.TryRemove(oldKey, out _);
 
-                        await Clients.Group(group).SendAsync("ReactionUpdated", new {messageId, emoji, count = oldCount, user = me, added = false });
+                        await Clients.Group(group).SendAsync("ReactionUpdated", new {messageId, emoji = existingEmoji, count = oldCount, user = me, added = false });
                     }
+                    var newKey = ReactionKey(messageId, emoji);
                     var newUsers = _reactions.GetOrAdd(ReactionKey(messageId, emoji), _ => new ConcurrentDictionary<string, byte>());
                     newUsers[me] = 1;
                     _userReactionByMessage[muKey] = emoji;
