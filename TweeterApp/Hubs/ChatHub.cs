@@ -115,5 +115,16 @@ namespace TweeterApp.Hubs
                 await Clients.Group(group).SendAsync("ReactionUpdated", new { messageId, emoji, count, user = me, added = true });
             }
         }
+        public async Task SendImage(string toUsername, string imageUrl, string? caption = null)
+        {
+            var from = Context.User?.Identity?.Name ?? "Anonymous";
+            if(string.IsNullOrWhiteSpace(toUsername)|| string.IsNullOrWhiteSpace(imageUrl)) return;
+            var group = DialougGroup(from, toUsername);
+            var id = Guid.NewGuid().ToString("N");
+            var timestamp = DateTimeOffset.UtcNow;
+
+            await Clients.Group(group).SendAsync("ReceiveImage", id, from, imageUrl, caption, timestamp);
+
+        }
     }
 }

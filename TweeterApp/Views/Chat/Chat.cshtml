@@ -15,6 +15,8 @@
     <ul id="messagesList" class="messages"></ul>
 
     <div class="chat-inputs">
+        <button id="photoBtn" type="button" title="Send Photo">📷</button>
+        <input type="file" id="fileInput" accept="image/*" style="display:none"/>
         <input type="text" id="messageInput" placeholder="Сообщение" />
         <button id="sendBtn" type="button">Отправить</button>
     </div>
@@ -39,6 +41,8 @@
     const messageInput = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
     const presence = document.getElementById("presence");
+    const fileInput =document.getElementById("fileInput");
+    const photoBtn = document.getElementById("photoBtn");
 
     function escapeHtml(s) {
         const div = document.createElement("div");
@@ -66,9 +70,34 @@
         messagesList.appendChild(li);
         messagesList.scrollTop = messagesList.scrollHeight;
     }
+    function appendImage(user, url, caption, ts, id){
+        const li = document.createElement("li");
+        li.classList.add("message", user === currentUser ? "from-me" : "from-others");
+        if(id) li.dataset.id = id;
+        const time = ts ? new Date(ts).toLocaleTimeString() : "";
+        li.innerHTML = `
+        <div class="bubble">
+            <a href="${imageUrl}" target="_blank" rel="noopener">
+                <img src="${imageUrl}" alt="image" class="img-msg"/>
+            </a>
+            ${caption ? `<div class="text">${escapeHtml(caption)}</div>`: ""}
+            <div class="meta">${escapeHtml(user)} - ${time}</div>
+        </div>
+        <div class="reactions"></div>
+        <div class="react-bar">
+          <button class="r" type="button" data-emoji="👍">👍</button>
+          <button class="r" type="button" data-emoji="❤️">❤️</button>
+          <button class="r" type="button" data-emoji="😂">😂</button>
+          <button class="r" type="button" data-emoji="🔥">🔥</button>
+        </div>
+        `;
+        messagesList.appendChild(li);
+        messagesList.scrollTop = messagesList.scrollHeight;
+    }
 
-    connection.on("ReceiveMessage", (id ,user, message, timestamp) => {
+    connection.on("ReceiveMessage", (id ,user, url, caption, message, timestamp) => {
         appendMessage(id, user, message, timestamp);
+        appendImage(user, url, caption, timestamp, id);
     });
 
     connection.on("PresenceChanged", (user, state) => {
@@ -116,7 +145,7 @@
         const li = messagesList.querySelector(`li.message[data-id="${messageId}"]`);
         if(!li) return;
         const reactions = li.querySelector(".reactions");
-        let chip = reactions.querySelector(`reaction-chip[data-emoji = ${emoji}]`);
+        let chip = reactions.querySelector(`.reaction-chip[data-emoji = ${emoji}]`);
         if(!chip)
         {
             chip = document.createElement("span");
@@ -125,7 +154,7 @@
             reactions.appendChild(chip);
         }
         if(count > 0){
-            chip.textContent = `${emoji}${count}`;
+            chip.textContent = `${emoji} ${count}`;
             chip.style.display = "inline-flex";
 
         }else{
@@ -143,6 +172,35 @@
         connection.invoke("ToggleReaction", otherUser, messageId, emoji)
             .catch(err => console.error("ToggleReaction error:", err));
     });
+    photoBtn("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", async() => {
+        const file = fileInput.files?.[0];
+        if(!file) return;
+        try{
+            const fd = new FormData();
+            fd.append("file",file);
+            const res = await fetch("/chat/upload",{
+                method:"POST",
+                body:fd
+            });
+            
+            if(!res.ok){
+                 console.error("Upload Failed", await res.text());
+                 return;
+            };
+            const{url} = await res.json();
+            await connection.invoke("SendImage",otherUser,url,null);
+        }
+        catch(e){
+            console.error("Upload error", e);
+
+        }finally{
+            fileInput.value = "";
+        }
+    }
+
+
 
 </script>
 <style>
@@ -258,4 +316,26 @@
             .chat-inputs button:hover {
                 background-color: #0056b3;
             }
+
+        .chat-inputs #photoBtn{
+            padding: 10px 12px;
+            border:1px solid #ccc;
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+            .chat-inputs #photoBtn:hover{
+                background-color:#f3f4f6
+            }
+
+    img-msg{
+        display:block;
+        max-width:600px;
+        max-height:400px;
+        width:auto;
+        height:auto;
+        border-radius: 8px;
+        border:1px solid #e5e7eb;
+    }
 </style>
