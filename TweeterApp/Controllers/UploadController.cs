@@ -6,7 +6,7 @@ namespace TweeterApp.Controllers
     [Authorize]
     public class UploadController : Controller
     {
-        [HttpPost("/chat/upload")]
+        [HttpPost("/chat/uploads")]
         [RequestSizeLimit(10 * 1024 * 1024)]
         public async Task<IActionResult> Upload(IFormFile file)
         {
@@ -31,7 +31,7 @@ namespace TweeterApp.Controllers
 
             using(var stream = System.IO.File.Create(fullPath)) 
             { 
-                await stream.CopyToAsync(stream); 
+                await file.CopyToAsync(stream); 
             }
             var url = $"/uploads/{name}";
             return Ok(new { url });

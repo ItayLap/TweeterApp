@@ -77,8 +77,8 @@
         const time = ts ? new Date(ts).toLocaleTimeString() : "";
         li.innerHTML = `
         <div class="bubble">
-            <a href="${imageUrl}" target="_blank" rel="noopener">
-                <img src="${imageUrl}" alt="image" class="img-msg"/>
+             <a href="${url}" target="_blank" >
+                <img src="${url}" alt="image" class="img-msg"/>
             </a>
             ${caption ? `<div class="text">${escapeHtml(caption)}</div>`: ""}
             <div class="meta">${escapeHtml(user)} - ${time}</div>
@@ -101,7 +101,7 @@
 
     connection.on("ReceiveImage", (id, user, url, caption, timestamp)=>{
         appendImage(user, url, caption, timestamp, id);
-    }
+    });
 
     connection.on("PresenceChanged", (user, state) => {
         if (user === otherUser) {
@@ -148,7 +148,7 @@
         const li = messagesList.querySelector(`li.message[data-id="${messageId}"]`);
         if(!li) return;
         const reactions = li.querySelector(".reactions");
-        let chip = reactions.querySelector(`.reaction-chip[data-emoji = ${emoji}]`);
+        let chip = reactions.querySelector(`.reaction-chip[data-emoji = "${emoji}"]`);
         if(!chip)
         {
             chip = document.createElement("span");
@@ -178,13 +178,15 @@
 
     photoBtn.addEventListener("click", () => fileInput.click());
 
+
+
     fileInput.addEventListener("change", async() => {
         const file = fileInput.files?.[0];
         if(!file) return;
         try{
             const fd = new FormData();
             fd.append("file",file);
-            const res = await fetch("/chat/upload",{
+            const res = await fetch("/chat/uploads",{
                 method:"POST",
                 body:fd
             });
@@ -202,7 +204,7 @@
         }finally{
             fileInput.value = "";
         }
-    }
+    });
 
 
 
