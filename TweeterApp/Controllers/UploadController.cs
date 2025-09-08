@@ -29,7 +29,7 @@ namespace TweeterApp.Controllers
             var name = $"{Guid.NewGuid():N}{ext}";
             var fullPath = Path.Combine(uploads, name);
 
-            using(var stream = System.IO.File.OpenWrite(fullPath)) 
+            using(var stream = System.IO.File.Create(fullPath)) 
             { 
                 await stream.CopyToAsync(stream); 
             }

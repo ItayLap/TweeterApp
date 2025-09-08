@@ -95,10 +95,13 @@
         messagesList.scrollTop = messagesList.scrollHeight;
     }
 
-    connection.on("ReceiveMessage", (id ,user, url, caption, message, timestamp) => {
+    connection.on("ReceiveMessage", (id ,user, message, timestamp) => {
         appendMessage(id, user, message, timestamp);
-        appendImage(user, url, caption, timestamp, id);
     });
+
+    connection.on("ReceiveImage", (id, user, url, caption, timestamp)=>{
+        appendImage(user, url, caption, timestamp, id);
+    }
 
     connection.on("PresenceChanged", (user, state) => {
         if (user === otherUser) {
@@ -172,7 +175,8 @@
         connection.invoke("ToggleReaction", otherUser, messageId, emoji)
             .catch(err => console.error("ToggleReaction error:", err));
     });
-    photoBtn("click", () => fileInput.click());
+
+    photoBtn.addEventListener("click", () => fileInput.click());
 
     fileInput.addEventListener("change", async() => {
         const file = fileInput.files?.[0];
