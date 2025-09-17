@@ -22,6 +22,8 @@ namespace TweeterApp.Data
         public DbSet<SavedPostsModel> SavedPosts { get; set; }
         public DbSet<MessageModel> Messages { get; set; }
 
+        public DbSet<FriendsModel> Friends => Set<FriendsModel>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder) 
         {
             base.OnModelCreating(modelBuilder);
@@ -111,12 +113,23 @@ namespace TweeterApp.Data
                 .HasForeignKey(m => m.ReceiverId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-                // delete by hand 
+            // delete by hand 
             //modelBuilder.Entity<LikeModel>()
             //    .HasOne(I => I.Post)
             //    .WithMany()
             //    .HasForeignKey(I => I.PostId)
             //    .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FriendsModel>()
+                .HasIndex(X => new { X.RequesterUserName, X.AddresseeUserName })
+                .IsUnique(true);
+
+            modelBuilder.Entity<FriendsModel>()
+                .Property(x =>  x.RequesterUserName).HasMaxLength(256).IsRequired();
+            // 256 to sync with Identity
+
+            modelBuilder.Entity<FriendsModel>()
+                .Property(x => x.AddresseeUserName).HasMaxLength(256).IsRequired();
         }
     } 
 }

@@ -63,11 +63,6 @@ using (var scope = app.Services.CreateScope())
         var role = new IdentityRole<int>("User");
         await roleManager.CreateAsync(role);
     }
-    //var user = await userManager.FindByEmailAsync("d@email.com");
-    //if (user != null && !await userManager.IsInRoleAsync(user,"User"))
-    //{
-    //    await userManager.AddToRoleAsync(user, "User");
-    //}
 }
 
 // Configure the HTTP request pipeline.
