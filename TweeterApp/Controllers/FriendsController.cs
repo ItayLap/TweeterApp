@@ -50,6 +50,7 @@ namespace TweeterApp.Controllers
                 .ToListAsync();
             return Ok(new {incoming, outgoing});
         }
+
         [HttpPost("request")]
         public async Task<IActionResult> SendRequest([FromBody] string toUserName)
         {
@@ -102,6 +103,62 @@ namespace TweeterApp.Controllers
                         return Ok(new { status = "resent" });
                 }
             }
+            var fr = new FriendsModel
+            {
+                RequesterUserName = me,
+                AddresseeUserName = toUserName,
+                Status = FriendshipStatus.Pending,
+                CreatedAt = DateTimeOffset.UtcNow,
+            };
+            _db.Friends.Add(fr);
+            await _db.SaveChangesAsync();
+            await _hub.Clients.User(toUserName).SendAsync("FriendRequestIncoming", me);
+            return Ok(new { status = "sent" });
+        }
+        public record RespondDto(string FromUserName, bool Accept);
+
+        [HttpPost("respond")]
+        public async Task<IActionResult> Respond([FromBody]RespondDto dto)
+        {
+            var me = User.Identity!.Name!;
+
+            var fr = await _db.Friends.FirstOrDefaultAsync(f => 
+            f.RequesterUserName == dto.FromUserName && f.AddresseeUserName == me && f.Status == FriendshipStatus.Pending);
+            if (fr == null)
+            {
+                return NotFound();
+            }
+            fr.Status = dto.Accept ? FriendshipStatus.Accepted : FriendshipStatus.Declined;
+            fr.UpdatedAt = DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync();
+
+            await _hub.Clients.User(dto.FromUserName).SendAsync("FriendRequestResult", me, dto.Accept ? "accepted" : "declined");
+            await _hub.Clients.User(me).SendAsync("FriendListUpdated");
+
+            return Ok();
+        }
+
+        [HttpPost("remove")]
+        public async Task<IActionResult> Remove([FromBody] string otherUserName)
+        {
+            var me = User.Identity!.Name!;
+            otherUserName = otherUserName.Trim().ToLowerInvariant() ?? "";
+
+            if (string.IsNullOrWhiteSpace(otherUserName) || otherUserName == me) return BadRequest();
+
+            var fr = await _db.Friends.FirstOrDefaultAsync(f =>
+            f.Status == FriendshipStatus.Accepted && (f.RequesterUserName == otherUserName && f.AddresseeUserName == me)||
+            (f.RequesterUserName == me && f.AddresseeUserName == otherUserName ));
+
+            if (fr == null) return NotFound();
+
+            _db.Friends.Remove(fr);
+            await _db.SaveChangesAsync();
+
+            await _hub.Clients.User(otherUserName).SendAsync("FriendRemoved", me);
+            await _hub.Clients.User(me).SendAsync("FriendListUpdated");
+
+            return Ok();
         }
     }
 }
