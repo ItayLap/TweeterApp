@@ -1,0 +1,132 @@
+﻿@model FriendsModel
+@{
+    ViewData["Title"] = "Manage friends";
+    var me = User?.Identity?.Name ?? "";
+}
+<div class="friends-page">
+    <h2>@ViewData["Title"]</h2>
+
+    <div class="friend-actions">
+        <input id="addInput" type="text" placeholder="email of user" />
+        <button id="addBtn" type="button">Add friend</button>
+    </div>
+    <div class="cols">
+        <div class="col">
+            <h3>My friends</h3>
+            <ul id="friendsList" class="list"></ul>
+        </div>
+        <div class="col">
+            <h3>incoming requests</h3>
+            <ul id="incomingList" class="list"></ul>
+        </div>
+        <div class="col">
+            <h3>Outgoing requests</h3>
+            <ul id="OutgoingList" class="list"></ul>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    (() => {
+        const addInput = document.getElementById("addInput")
+        const addBtn = document.getElementById("addBtn")
+        const friendsList = document.getElementById("friendsList")
+        const incomingList = document.getElementById("incomingList")
+        const outgoingList = document.getElementById("outgoingList")
+
+        async function loadFriends() {
+            const r = await fetch("/friends");
+            if (!r.ok) throw new Error(await r.text());
+            return r.json();
+        }
+        async function loadRequests() {
+            const r = await fetch("/friends/requests");
+            if (!r.ok) throw new Error(await r.text());
+            return r.json(); // { incoming:[], outgoing:[] }
+        }
+        async function sendFriendRequest(toUser) {
+            const r = await fetch("/friends/request", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify((toUser ?? "").trim())
+            });
+            if (!r.ok) throw new Error(await r.text());
+        }
+        async function respondFriendRequest(fromUser, accept) {
+            const r = await fetch("/friends/respond", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fromUserName: (fromUser ?? "").trim(), accept: !!accept })
+            });
+            if (!r.ok) throw new Error(await r.text());
+        }
+        async function removeFriend(otherUser) {
+            const r = await fetch("/friends/remove", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify((otherUser ?? "").trim())
+            });
+            if (!r.ok) throw new Error(await r.text());
+        }
+        async function renderFriends(items){
+            friendsList.innerHTML = "";
+            if(!items?.length){
+                friendsList.innerHTML = `<li class="empty">empty<li>`;
+                return;
+            }
+            for(const u of items)
+            {
+                const li =document.createElement("li");
+                li.innerHTML = `
+                <span class = "name">${u}</span>
+                <button class="danger remove" data-u="${u}"> delete </button>
+                `;
+                friendsList.appendChild(li);
+            }
+        }
+        async function renderIncomig(items){
+            friendsList.innerHTML = "";
+            if(!items?.length){
+                friendsList.innerHTML = `<li class="empty">no incoming requests<li>`;
+                return;
+            }
+            for(const u of items){
+                const li =document.createElement("li");
+                li.innerHTML = `
+                <span class = "name">${u}</span>
+                <div class="row">
+                    <button class="primary accept" data-u="${u}">accept</button>
+                    <button class="primary decline" data-u="${u}">decline</button>
+                </div>
+                `;
+                incomingList.appendChild(li);
+            }
+        }
+        async function renderOutcoming(items){
+            outgoingList.innerHTML = "";
+            if(!items?.length){
+                outgoingList.innerHTML = `<li class"empty">No outgoing requests</li>`
+                return;
+            }
+            for(const u of items){
+                const li =document.createElement("li");
+                li.innerHTML = `
+                <span class="name">${u}</span>
+                <span class="status">Pending</span>
+                `;
+                outgoingList.appendChild(li);  
+            }
+        }
+        async function refreshAll(){
+            try{
+                const [friends, reqs] = await Promise.all([loadFriends(), loadRequests()]);
+                renderFriends(friends);
+                loadRequests(reqs.incoming);
+                loadRequests(reqs.outgoing);
+            }catch(e){
+                console.error("Friends refresh error:",e);
+            }
+        }
+    })
+</script>

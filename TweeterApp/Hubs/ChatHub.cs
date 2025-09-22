@@ -131,7 +131,7 @@ namespace TweeterApp.Hubs
             var timestamp = DateTimeOffset.UtcNow;
 
             await Clients.Group(group).SendAsync("ReceiveImage", id, from, imageUrl, caption, timestamp);
-        }//modify so
+        }//modify so only friends can access the function
         
         private Task<bool> AreFriends(string a, string b) =>
             _db.Friends.AnyAsync(f => f.Status == FriendshipStatus.Accepted && 
