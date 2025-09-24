@@ -126,12 +126,13 @@ namespace TweeterApp.Hubs
         {
             var from = Context.User?.Identity?.Name ?? "Anonymous";
             if(string.IsNullOrWhiteSpace(toUsername)|| string.IsNullOrWhiteSpace(imageUrl)) return;
+            //if (!await AreFriends(toUsername, )) return;
             var group = DialougGroup(from, toUsername);
             var id = Guid.NewGuid().ToString("N");
             var timestamp = DateTimeOffset.UtcNow;
 
             await Clients.Group(group).SendAsync("ReceiveImage", id, from, imageUrl, caption, timestamp);
-        }//modify so only friends can access the function
+        }
         
         private Task<bool> AreFriends(string a, string b) =>
             _db.Friends.AnyAsync(f => f.Status == FriendshipStatus.Accepted && 

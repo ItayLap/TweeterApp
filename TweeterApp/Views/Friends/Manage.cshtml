@@ -128,5 +128,67 @@
                 console.error("Friends refresh error:",e);
             }
         }
+        addBtn.addEventListener("click", async()=>{
+            const toUser = addInput.value.trim();
+            if(!toUser)return;
+            addBtn.disabled = true;
+            try{
+                await sendFriendRequest(toUser);
+                addInput.value = "";
+                await refreshAll();
+
+            }catch{
+                alert("unable to send request" + e.message);
+            }finally{
+                addBtn.disabled = false;
+            }
+        });
+        incomingList.addEventListener("click" , async(e) => {
+            const u = e.target?.dataset?.u;
+            if(!u) return;
+            if(e.target.classList.contains("accept")){
+                await respondFriendRequest(u, true);
+                await refreshAll();
+            }else if(e.target.classList.contains("decline")){
+                await respondFriendRequest(u, false);
+                await refreshAll();
+            }
+        });
+        friendsList.addEventListener("click", async(e) =>{
+            const u = e.target?.dataset?.u;
+            if(!u) return;
+            if(e.target.classList.contains("remove")){
+                if(!confirm(`remove ${u} from friends?`))return;
+                await removeFriend(u);
+                await refreshAll();
+            }
+        });
+
+        const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .withAutomaticReconnect()
+        .build();
+
+        connection.on("FriendRequestIncoming", async (from) =>{
+            console.log("Incoming request from:",from);
+            await refreshAll();
+        });
+
+        connection.on("FriendRequestAccepted", async () =>{
+            console.log("friendship confirmed");
+            await refreshAll();
+        });
+
+        connection.on("FriendRequestResult", async (_who, result) =>{
+            console.log("result of request:", result);
+            await refreshAll();
+        });
+
+        connection.on("FriendRequestUpdated", async () =>{
+            await refreshAll();
+        });
+
+        connection.start().then(refreshAll).catch(err => console.error(err));
+
     })
 </script>

@@ -22,6 +22,9 @@ namespace TweeterApp.Controllers
             _hub = hub;
         }
 
+        [HttpGet("/Friends/Manage")]
+        public IActionResult Manage() => View();
+
         [HttpGet]
         public async Task<IActionResult> List()
         {
