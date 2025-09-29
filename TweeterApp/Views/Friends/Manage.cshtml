@@ -7,25 +7,54 @@
     <h2>@ViewData["Title"]</h2>
 
     <div class="friend-actions">
-        <input id="addInput" type="text" placeholder="email of user" />
+        <input class="friend-actions-input" id="addInput" type="text" placeholder="email of user" />
         <button id="addBtn" type="button">Add friend</button>
     </div>
     <div class="cols">
         <div class="col">
-            <h3>My friends</h3>
+            <h3 class="col-title">My friends</h3>
             <ul id="friendsList" class="list"></ul>
         </div>
         <div class="col">
-            <h3>incoming requests</h3>
+            <h3 class="col-title">incoming requests</h3>
             <ul id="incomingList" class="list"></ul>
         </div>
         <div class="col">
-            <h3>Outgoing requests</h3>
+            <h3 class="col-title">Outgoing requests</h3>
             <ul id="OutgoingList" class="list"></ul>
         </div>
     </div>
 </div>
+     
+<style>
+    .friend-page{
+        display: flex;
+        flex-direction: column;
+        align-items:center;
+    }
+    .friend-actions{
+        margin-bottom: 40px;
+        padding: 10px 0;
+        display:flex;
+        flex-direction:column;
+        width: 33%;
+        margin: 0 auto;
+    }
+    .friend-actions-input{
+        margin-bottom: 20px;
+    }
+    .col-title{
+        margin-bottom: 10px;
+        text-decoration:underline;
+    }
 
+    .cols{
+        display: flex;
+        justify-content:space-around;
+        width: 100%;
+        padding: 10px;
+    }
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 <script>
     (() => {
@@ -120,7 +149,7 @@
         }
         async function refreshAll(){
             try{
-                const [friends, reqs] = await Promise.all([loadFriends(), loadRequests()]);
+                
                 renderFriends(friends);
                 loadRequests(reqs.incoming);
                 loadRequests(reqs.outgoing);
@@ -168,6 +197,7 @@
         .withUrl("/chatHub")
         .withAutomaticReconnect()
         .build();
+
 
         connection.on("FriendRequestIncoming", async (from) =>{
             console.log("Incoming request from:",from);

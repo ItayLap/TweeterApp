@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using TweeterApp.Data;
+using TweeterApp.Hubs;
 using TweeterApp.Models;
 
 namespace TweeterApp.Controllers
@@ -14,9 +15,9 @@ namespace TweeterApp.Controllers
     public class FriendsController : Controller
     {
         private readonly ApplicationDbContext _db;
-        private readonly IHubContext _hub;
+        private readonly IHubContext<ChatHub> _hub;
 
-        public FriendsController(ApplicationDbContext db, IHubContext hub)
+        public FriendsController(ApplicationDbContext db, IHubContext<ChatHub> hub)
         {
             _db = db; 
             _hub = hub;
@@ -25,7 +26,7 @@ namespace TweeterApp.Controllers
         [HttpGet("/Friends/Manage")]
         public IActionResult Manage() => View();
 
-        [HttpGet]
+        [HttpGet("list")]
         public async Task<IActionResult> List()
         {
             var me = User.Identity!.Name!;
@@ -33,9 +34,9 @@ namespace TweeterApp.Controllers
                 .Where(f => f.Status == FriendshipStatus.Accepted && f.RequesterUserName == me || f.AddresseeUserName == me)
                 .Select(f =>  f.RequesterUserName == me ? f.AddresseeUserName: f.RequesterUserName).OrderBy(s => s).ToListAsync();
 
-            return Ok(friends);
+            return Ok(new { friends });
         }
-
+        
         [HttpGet("request")]
         public async Task<IActionResult> Requests()
         {
@@ -141,7 +142,7 @@ namespace TweeterApp.Controllers
             return Ok();
         }
 
-        [HttpPost("remove")]
+        [HttpDelete("{otherUserName}")]
         public async Task<IActionResult> Remove([FromBody] string otherUserName)
         {
             var me = User.Identity!.Name!;
@@ -150,7 +151,8 @@ namespace TweeterApp.Controllers
             if (string.IsNullOrWhiteSpace(otherUserName) || otherUserName == me) return BadRequest();
 
             var fr = await _db.Friends.FirstOrDefaultAsync(f =>
-            f.Status == FriendshipStatus.Accepted && (f.RequesterUserName == otherUserName && f.AddresseeUserName == me)||
+            (f.Status == FriendshipStatus.Accepted) &&
+            (f.RequesterUserName == otherUserName && f.AddresseeUserName == me)||
             (f.RequesterUserName == me && f.AddresseeUserName == otherUserName ));
 
             if (fr == null) return NotFound();
