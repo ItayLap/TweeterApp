@@ -31,7 +31,7 @@ namespace TweeterApp.Controllers
         {
             var me = User.Identity!.Name!;
             var friends = await _db.Friends
-                .Where(f => f.Status == FriendshipStatus.Accepted && f.RequesterUserName == me || f.AddresseeUserName == me)
+                .Where(f => f.Status == FriendshipStatus.Accepted && (f.RequesterUserName == me || f.AddresseeUserName == me))
                 .Select(f =>  f.RequesterUserName == me ? f.AddresseeUserName: f.RequesterUserName).OrderBy(s => s).ToListAsync();
 
             return Ok(new { friends });

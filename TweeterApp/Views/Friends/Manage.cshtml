@@ -70,7 +70,7 @@
             return r.json();
         }
         async function loadRequests() {
-            const r = await fetch("/friends/requests");
+            const r = await fetch("/friends/request");
             if (!r.ok) throw new Error(await r.text());
             return r.json(); // { incoming:[], outgoing:[] }
         }
