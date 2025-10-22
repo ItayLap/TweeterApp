@@ -21,7 +21,7 @@
         </div>
         <div class="col">
             <h3 class="col-title">Outgoing requests</h3>
-            <ul id="OutgoingList" class="list"></ul>
+            <ul id="outgoingList" class="list"></ul>
         </div>
     </div>
 </div>
@@ -57,168 +57,145 @@
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 <script>
-    (() => {
-        const addInput = document.getElementById("addInput")
-        const addBtn = document.getElementById("addBtn")
-        const friendsList = document.getElementById("friendsList")
-        const incomingList = document.getElementById("incomingList")
-        const outgoingList = document.getElementById("outgoingList")
+    (async () => {
+      const friendsList  = document.getElementById('friendsList');
+      const incomingList = document.getElementById('incomingList');
+      const outgoingList = document.getElementById('outgoingList');
+      const toUserInput  = document.getElementById('addInput');
+      const sendBtn      = document.getElementById('addBtn');
 
-        async function loadFriends() {
-            const r = await fetch("/friends");
-            if (!r.ok) throw new Error(await r.text());
-            return r.json();
-        }
-        async function loadRequests() {
-            const r = await fetch("/friends/request");
-            if (!r.ok) throw new Error(await r.text());
-            return r.json(); // { incoming:[], outgoing:[] }
-        }
-        async function sendFriendRequest(toUser) {
-            const r = await fetch("/friends/request", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify((toUser ?? "").trim())
-            });
-            if (!r.ok) throw new Error(await r.text());
-        }
-        async function respondFriendRequest(fromUser, accept) {
-            const r = await fetch("/friends/respond", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fromUserName: (fromUser ?? "").trim(), accept: !!accept })
-            });
-            if (!r.ok) throw new Error(await r.text());
-        }
-        async function removeFriend(otherUser) {
-            const r = await fetch("/friends/remove", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify((otherUser ?? "").trim())
-            });
-            if (!r.ok) throw new Error(await r.text());
-        }
-        async function renderFriends(items){
-            friendsList.innerHTML = "";
-            if(!items?.length){
-                friendsList.innerHTML = `<li class="empty">empty<li>`;
-                return;
-            }
-            for(const u of items)
-            {
-                const li =document.createElement("li");
-                li.innerHTML = `
-                <span class = "name">${u}</span>
-                <button class="danger remove" data-u="${u}"> delete </button>
-                `;
-                friendsList.appendChild(li);
-            }
-        }
-        async function renderIncomig(items){
-            friendsList.innerHTML = "";
-            if(!items?.length){
-                friendsList.innerHTML = `<li class="empty">no incoming requests<li>`;
-                return;
-            }
-            for(const u of items){
-                const li =document.createElement("li");
-                li.innerHTML = `
-                <span class = "name">${u}</span>
-                <div class="row">
-                    <button class="primary accept" data-u="${u}">accept</button>
-                    <button class="primary decline" data-u="${u}">decline</button>
-                </div>
-                `;
-                incomingList.appendChild(li);
-            }
-        }
-        async function renderOutcoming(items){
-            outgoingList.innerHTML = "";
-            if(!items?.length){
-                outgoingList.innerHTML = `<li class"empty">No outgoing requests</li>`
-                return;
-            }
-            for(const u of items){
-                const li =document.createElement("li");
-                li.innerHTML = `
-                <span class="name">${u}</span>
-                <span class="status">Pending</span>
-                `;
-                outgoingList.appendChild(li);  
-            }
-        }
-        async function refreshAll(){
-            try{
-                
-                renderFriends(friends);
-                loadRequests(reqs.incoming);
-                loadRequests(reqs.outgoing);
-            }catch(e){
-                console.error("Friends refresh error:",e);
-            }
-        }
-        addBtn.addEventListener("click", async()=>{
-            const toUser = addInput.value.trim();
-            if(!toUser)return;
-            addBtn.disabled = true;
-            try{
-                await sendFriendRequest(toUser);
-                addInput.value = "";
-                await refreshAll();
+      async function loadFriends(){
+        const res = await fetch('/friends/list');
+        if(!res.ok){ console.error('GET /friends', res.status, await res.text()); return; }
+        const { friends } = await res.json();
+        friendsList.innerHTML = '';
+        (friends || []).forEach(u => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-center';
+          li.textContent = u;
 
-            }catch{
-                alert("unable to send request" + e.message);
-            }finally{
-                addBtn.disabled = false;
-            }
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-sm btn-outline-danger remove';
+          btn.dataset.u = u;
+          btn.textContent = 'Remove';
+          li.appendChild(btn);
+
+          friendsList.appendChild(li);
         });
-        incomingList.addEventListener("click" , async(e) => {
-            const u = e.target?.dataset?.u;
-            if(!u) return;
-            if(e.target.classList.contains("accept")){
-                await respondFriendRequest(u, true);
-                await refreshAll();
-            }else if(e.target.classList.contains("decline")){
-                await respondFriendRequest(u, false);
-                await refreshAll();
-            }
-        });
-        friendsList.addEventListener("click", async(e) =>{
-            const u = e.target?.dataset?.u;
-            if(!u) return;
-            if(e.target.classList.contains("remove")){
-                if(!confirm(`remove ${u} from friends?`))return;
-                await removeFriend(u);
-                await refreshAll();
-            }
+      }
+
+      async function loadRequests(){
+        const res = await fetch('/friends/requests');
+        if(!res.ok){ console.error('GET /friends/requests', res.status, await res.text()); return; }
+        const { incoming, outgoing } = await res.json();
+
+        incomingList.innerHTML = '';
+        (incoming || []).forEach(u => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-center';
+          li.textContent = u;
+
+          const wrap = document.createElement('div');
+          const a = document.createElement('button');
+          a.className = 'btn btn-sm btn-success accept';
+          a.dataset.u = u; a.textContent = 'Accept';
+          const d = document.createElement('button');
+          d.className = 'btn btn-sm btn-outline-secondary decline';
+          d.dataset.u = u; d.textContent = 'Decline';
+          wrap.appendChild(a); wrap.appendChild(d);
+
+          li.appendChild(wrap);
+          incomingList.appendChild(li);
         });
 
-        const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/chatHub")
-        .withAutomaticReconnect()
-        .build();
+        outgoingList.innerHTML = '';
+        (outgoing || []).forEach(u => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-center';
+          li.textContent = u;
 
+          const c = document.createElement('button');
+          c.className = 'btn btn-sm btn-outline-danger cancel';
+          c.dataset.u = u; c.textContent = 'Cancel';
+          li.appendChild(c);
 
-        connection.on("FriendRequestIncoming", async (from) =>{
-            console.log("Incoming request from:",from);
-            await refreshAll();
+          outgoingList.appendChild(li);
         });
+      }
 
-        connection.on("FriendRequestAccepted", async () =>{
-            console.log("friendship confirmed");
-            await refreshAll();
+      async function refreshAll(){ await Promise.all([loadFriends(), loadRequests()]); }
+
+      // actions
+      sendBtn.addEventListener('click', async () => {
+          const toUserInput =  document.getElementById('addInput');
+          if(!toUserInput){
+              console.error('no toUser');
+              return;
+          }
+        const to = toUserInput.value.trim();
+        if(!to) return;
+        const res = await fetch('/friends/request', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify((to ?? "").trim())
         });
+        if(!res.ok) alert(await res.text());
+        toUserInput.value = '';
+        await refreshAll();
+      });
 
-        connection.on("FriendRequestResult", async (_who, result) =>{
-            console.log("result of request:", result);
-            await refreshAll();
-        });
+      incomingList.addEventListener('click', async (e) => {
+        const u = e.target?.dataset?.u; if(!u) return;
+        if(e.target.classList.contains('accept')){
+          await fetch('/friends/respond', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ fromUserName: u, accept: true })
+          });
+          await refreshAll();
+        } else if(e.target.classList.contains('decline')){
+          await fetch('/friends/respond', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ fromUserName: u, accept: false })
+          });
+          await refreshAll();
+        }
+      });
 
-        connection.on("FriendRequestUpdated", async () =>{
-            await refreshAll();
-        });
+      outgoingList.addEventListener('click', async (e) => {
+        const u = e.target?.dataset?.u; if(!u) return;
+        if(e.target.classList.contains('cancel')){
 
-        connection.start().then(refreshAll).catch(err => console.error(err));
+          const res = await fetch('/friends/respond', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify((u ?? '').trim())
+          });
+          if(!res.ok) console.warn('cancel respond?', await res.text());
+          await refreshAll();
+        }
+      });
 
-    })
+      friendsList.addEventListener('click', async (e) => {
+        const u = e.target?.dataset?.u; if(!u) return;
+        if(e.target.classList.contains('remove')){
+          if(!confirm(`Remove ${u} from friends `)) return;
+          const r = await fetch('/friends/' + encodeURIComponent(u), { method:'DELETE' });
+          if(!r.ok) alert(await r.text());
+          await refreshAll();
+        }
+      });
+
+
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl('/chatHub').withAutomaticReconnect().build();
+
+      connection.on('FriendRequestIncoming', async (_from) => { await refreshAll(); });
+      connection.on('FriendRequestResult',   async (_who, _result) => { await refreshAll(); });
+      connection.on('FriendListUpdated',     async () => { await refreshAll(); });
+
+      connection.onreconnecting(err => console.warn('SR reconnecting', err));
+      connection.onreconnected(() => refreshAll());
+      connection.onclose(err => console.error('SR closed', err));
+
+      await connection.start();
+      await refreshAll();
+    })();
 </script>
