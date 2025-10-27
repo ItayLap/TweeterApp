@@ -136,7 +136,7 @@
         if(!to) return;
         const res = await fetch('/friends/request', {
           method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify((to ?? "").trim())
+          body: JSON.stringify({toUserName : to})
         });
         if(!res.ok) alert(await res.text());
         toUserInput.value = '';
@@ -164,9 +164,9 @@
         const u = e.target?.dataset?.u; if(!u) return;
         if(e.target.classList.contains('cancel')){
 
-          const res = await fetch('/friends/respond', {
+          const res = await fetch('/friends/cancel', {
             method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify((u ?? '').trim())
+            body: JSON.stringify(u)
           });
           if(!res.ok) console.warn('cancel respond?', await res.text());
           await refreshAll();
