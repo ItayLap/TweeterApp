@@ -1,7 +1,14 @@
-﻿@model IEnumerable<TweeterApp.Models.ViewModels.PostViewModel>
+﻿@using System.Security.Claims
+@model IEnumerable<TweeterApp.Models.ViewModels.PostViewModel>
 
 <h2>Posts</h2>
 <a asp-action="Create" class="btn btn-primary" style="margin-bottom:30px;">Create post</a>
+
+@{
+    int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var currentUserId);
+    bool isAdmin = User.IsInRole("Admin");
+}
+
 @foreach(var post in Model)
 {
     <div class="post" style="padding:50px;margin-bottom:30px;border:3px solid red;border-radius:5%;">
@@ -41,8 +48,14 @@
             <a href="@Url.Action("Details","Post",new{id = post.Post.Id})" >Details</a>
         </div>
 
-        <a asp-action="Edit" asp-route-id="@post.Post.Id">Edit</a>
-        <a asp-action="Delete" asp-route-id="@post.Post.Id">Delete</a>
+        @if (post.Post.UserId == currentUserId)
+        {
+            <a asp-action="Edit" asp-route-id="@post.Post.Id">Edit</a>
+        }
+        @if (isAdmin || post.Post.UserId == currentUserId)
+        {   
+            <a asp-action="Delete" asp-route-id="@post.Post.Id">Delete</a>
+        }
 
     </div>
 }

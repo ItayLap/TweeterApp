@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using TweeterApp.Models;
 using TweeterApp.Models.ViewModels;
 using TweeterApp.Repository;
@@ -16,6 +17,9 @@ namespace TweeterApp.Controllers
         public readonly ILikeRepository _likeRepository;
         public readonly ICommentRepository _commentRepository;
         public readonly ISavedPostsRepository _savedPostsRepository;
+
+        private int CurrentUserId() => int.Parse(_userManager.GetUserId(User)!);
+        private bool IsAdmin() => User.IsInRole("Admin");
 
         public PostController(IPostRepository postRepository, UserManager<ApplicationUser> userManager, ILogger<PostController> logger, ILikeRepository likeRepository, ICommentRepository commentRepository, ISavedPostsRepository savedPostsRepository)
         {
@@ -135,26 +139,33 @@ namespace TweeterApp.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var post = await _postRepository.GetByIdAsync(id);
-            var user = await _userManager.GetUserAsync(User);
-            if (post == null || post.UserId != user.Id)
+            if (post == null)
+            {
+                return Forbid();
+            }
+            var isOwner = post.UserId == CurrentUserId();
+            if (!isOwner && !IsAdmin())
             {
                 return Forbid();
             }
             return View(post);
         }
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        //[Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var user = await _userManager.GetUserAsync(User);
             var post = await _postRepository.GetByIdAsync(id);
+            var isOwner = post.UserId == CurrentUserId();
+
             if (post.UserId != int.Parse(_userManager.GetUserId(User))) return Forbid();
-            if (post.UserId != user.Id)
+            if (!isOwner && !IsAdmin())
             {
                 return Forbid();
             }
 
-            var comments =await _commentRepository.GetByPostIdAsync(id);
+            var comments = await _commentRepository.GetByPostIdAsync(id);
             foreach (var comment in comments)
             {
                 await _commentRepository.DeleteAsync(comment.Id);

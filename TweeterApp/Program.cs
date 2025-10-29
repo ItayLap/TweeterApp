@@ -50,18 +50,59 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IUserNotificationRepository, UserNotificationRepository>();
 builder.Services.AddScoped<ISavedPostsRepository, SavedPostsRepository>();
 
-
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+});
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    var roleExist = await roleManager.RoleExistsAsync("User");
-    if (!roleExist)
+    async Task EnsureRole(string name)
     {
-        var role = new IdentityRole<int>("User");
-        await roleManager.CreateAsync(role);
+        if (!await roleManager.RoleExistsAsync(name))
+            await roleManager.CreateAsync(new IdentityRole<int>(name));
+    }
+    await EnsureRole("User");
+    await EnsureRole("Admin");
+
+    var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    var adminCfg = cfg.GetSection("AdminSeed");
+    var adminEmail = adminCfg["Email"];
+    var adminPass = adminCfg["Password"];
+
+    if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPass))
+    {
+        var admin = await userManager.FindByEmailAsync(adminEmail);
+        if (admin == null)
+        {
+            admin = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                FirstName = adminCfg["FirstName"] ?? "Admin",
+                LastName = adminCfg["LastName"] ?? "User",
+                DateCreated = DateTime.UtcNow,
+                DateModified = DateTime.UtcNow,
+                ActiveAccount = true,
+                Bio = "Administrator account",
+                GenderId = 0,
+                DateOfBirth = new DateTime(2000,1,1),
+                AvatarPath = "/Uploads/1b6675c3 - fd4f - 4604 - 854e-e3a0e094f5a6.png"
+            };
+
+            var create = await userManager.CreateAsync(admin, adminPass);
+            if (create.Succeeded)
+            {
+                await userManager.AddToRoleAsync(admin, "Admin");
+            }
+        }
+        else if(!await userManager.IsInRoleAsync(admin, "Admin"))
+        {
+            await userManager.AddToRoleAsync(admin, "Admin");
+        }
     }
 }
 

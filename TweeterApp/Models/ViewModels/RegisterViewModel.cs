@@ -13,6 +13,7 @@ namespace TweeterApp.Models.ViewModels
         public string Password { get; set; }
 
         [Required]
+        [DataType(DataType.Password)]
         [Compare("Password",ErrorMessage ="Paswords do not match")]
         public string ConfirmPassword { get; set; }
 
@@ -31,6 +32,5 @@ namespace TweeterApp.Models.ViewModels
 
         [Required]
         public IFormFile Avatar { get; set; }
-        public string CurrentAvatarPath { get; set; }
     }
 }
