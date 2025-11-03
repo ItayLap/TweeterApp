@@ -8,8 +8,8 @@
     <label>Password</label>
     <input asp-for="Password" type="password" class="form-control" />
 
-    <label>Remember me?</label>
-    <input asp-for="RememberMe" type="checkbox" value="true" class="form-control" />
+    <label asp-for="RememberMe" class="form-check-input">Remember me?</label>
+    <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
 
     <button type="submit" class="btn btn-primary">Login</button>
 </form>

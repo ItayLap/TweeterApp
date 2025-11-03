@@ -40,6 +40,8 @@ builder.Services.ConfigureApplicationCookie(config =>
     config.Cookie.Name = "MyCookie";
     config.LoginPath = "/Account/Login";
     config.AccessDeniedPath = "/Account/AccessDenied";
+    config.ExpireTimeSpan = TimeSpan.FromDays(14);
+    config.SlidingExpiration = true;// adds a day to the timer upon logging in(once per day)
 });
 builder.Services.AddMemoryCache();
 

@@ -1,5 +1,5 @@
 ﻿
-@model TweeterApp.Models.PostModel
+@model TweeterApp.Models.ViewModels.PostEditCreateViewModel
 
 <h2>Create post</h2>
 <form asp-action="Create" method="post" enctype="multipart/form-data">
@@ -13,7 +13,7 @@
     </div>
     <div>
         <label>Image</label>
-        <input type="file" name="imageFile" class="form-control"/>
+        <input asp-for="ImageFile" type="file" @*name="imageFile"*@ class="form-control" />
     </div>
     <button type="submit" class="btn btn-primary">Publish</button>
 </form>

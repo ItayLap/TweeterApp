@@ -60,41 +60,57 @@ namespace TweeterApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(PostModel Post, IFormFile imageFile)
+        public async Task<IActionResult> Create(PostEditCreateViewModel Post)
         {
-            //if (ModelState.IsValid)
-            //{
-                var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            if (!ModelState.IsValid)
             {
-                return Forbid();
-            }
-            if(imageFile != null && imageFile.Length > 0)
-            {
-                var fileName = Path.GetFileName(imageFile.FileName);
-                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
-                Directory.CreateDirectory(uploadsPath);
-                var filePath = Path.Combine(uploadsPath, fileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                foreach (var entry in ModelState)
                 {
-                    await imageFile.CopyToAsync(stream);
+                    var key = entry.Key;
+                    //var errors = entry.Value.Errors;
+
+                    foreach (var err in entry.Value.Errors)
+                    {
+                        _logger.LogWarning("ModelState Error for '{Field}' :{Message}", key ?? "(null)", err.ErrorMessage ?? "(none)");
+                    }
                 }
-                Post.ImagePath = "/Uploads/" + fileName;
+                _logger.LogWarning("Register model invalid");
+                return View(Post);
             }
-
-            var post = new PostModel
+            string? imagePath = null;
+            if (ModelState.IsValid)
             {
-                Title = Post.Title,
-                Content = Post.Content,
-                CreatedDate = DateTime.UtcNow,
-                UserId = user.Id,
-                ImagePath = Post.ImagePath
-            };
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Forbid();
+                }
+                if(Post.ImageFile != null && Post.ImageFile.Length > 0)
+                {
+                    var fileName = Path.GetFileName(Post.ImageFile.FileName);
+                    var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                    Directory.CreateDirectory(uploadsPath);
+                    var filePath = Path.Combine(uploadsPath, fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await Post.ImageFile.CopyToAsync(stream);
+                    }
+                    imagePath = "/Uploads/" + fileName;
+                }
 
-            await _postRepository.AddAsync(post);
-            return RedirectToAction("Index");
-            //}
-           // return View(Post);
+                var post = new PostModel
+                {
+                    Title = Post.Title,
+                    Content = Post.Content,
+                    CreatedDate = DateTime.UtcNow,
+                    UserId = int.Parse(_userManager.GetUserId(User)!),
+                    ImagePath = imagePath
+                };
+
+                await _postRepository.AddAsync(post);
+                return RedirectToAction("Index");
+            }
+            return View(Post);
         }
 
         public async Task<IActionResult> GetPost(int id)
@@ -107,36 +123,43 @@ namespace TweeterApp.Controllers
             }
             return View(post);
         }
+        private static bool IsAllowedImageExtension(string fileName)
+        {
+            var ext = Path.GetExtension(fileName).ToLowerInvariant();
+            return ext is ".jpg" or ".jpeg" or ".png" or ".gif";
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, PostModel Post, IFormFile imageFile)
+        public async Task<IActionResult> Edit(int id, PostEditCreateViewModel model)
         {
-            if (id != Post.Id) return NotFound();
-            var user = await _userManager.GetUserAsync(User);
-            if (Post.UserId != user.Id)
+            var post = await _postRepository.GetByIdAsync(id);
+            if (post == null) return NotFound();
+            if (!(IsAdmin() || post.UserId == CurrentUserId())) return Forbid();
+
+            if (!ModelState.IsValid) return View(model);
+
+            if (model.ImageFile is { Length: > 0 })
             {
-                _logger.LogInformation("post.UserId = {postUserId}, user.Id = {UserId}", Post.UserId, user.Id);
-                return Forbid();
+                if (!IsAllowedImageExtension(model.ImageFile.FileName))
+                    ModelState.AddModelError(nameof(model.ImageFile), "Only .jpg / .jpeg / .png / .gif files are allowed");
+                if (model.ImageFile.Length > 2 * 1024 * 1024)
+                    ModelState.AddModelError(nameof(model.ImageFile), "File size must be ≤ 2 MB");
+                if (!ModelState.IsValid) return View(model);
+                var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads");
+                Directory.CreateDirectory(uploads);
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.ImageFile.FileName)}";
+                await using var fs = new FileStream(Path.Combine(uploads, fileName), FileMode.Create);
+                await model.ImageFile.CopyToAsync(fs);
+                post.ImagePath = "/Uploads/" + fileName;
             }
-            if (imageFile != null && imageFile.Length > 0)
-            {
-                var fileName = Path.GetFileName(imageFile.FileName);
-                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
-                Directory.CreateDirectory(uploadsPath);
-                var filePath = Path.Combine(uploadsPath, fileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await imageFile.CopyToAsync(stream);
-                }
-                Post.ImagePath = "/Uploads/" + fileName;
-            }
-            //if (ModelState.IsValid)
-            //{
-            await _postRepository.UpdateAsync(Post);
-                return RedirectToAction("Index");
-           // }
-           //return View(post);
+
+            post.Title = model.Title;
+            post.Content = model.Content;
+            //post.DateModified = DateTime.UtcNow;
+
+            await _postRepository.UpdateAsync(post);
+            return RedirectToAction(nameof(Index));
         }
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
