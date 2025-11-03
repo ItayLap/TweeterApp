@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using System.Globalization;
 using TweeterApp.Models;
 using TweeterApp.Models.ViewModels;
@@ -109,18 +110,30 @@ namespace TweeterApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, PostModel post)
+        public async Task<IActionResult> Edit(int id, PostModel Post, IFormFile imageFile)
         {
-            if (id != post.Id) return NotFound();
+            if (id != Post.Id) return NotFound();
             var user = await _userManager.GetUserAsync(User);
-            if (post.UserId != user.Id)
+            if (Post.UserId != user.Id)
             {
-                _logger.LogInformation("post.UserId = {postUserId}, user.Id = {UserId}", post.UserId, user.Id);
+                _logger.LogInformation("post.UserId = {postUserId}, user.Id = {UserId}", Post.UserId, user.Id);
                 return Forbid();
+            }
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                var fileName = Path.GetFileName(imageFile.FileName);
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                Directory.CreateDirectory(uploadsPath);
+                var filePath = Path.Combine(uploadsPath, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(stream);
+                }
+                Post.ImagePath = "/Uploads/" + fileName;
             }
             //if (ModelState.IsValid)
             //{
-                await _postRepository.UpdateAsync(post);
+            await _postRepository.UpdateAsync(Post);
                 return RedirectToAction("Index");
            // }
            //return View(post);
@@ -159,7 +172,7 @@ namespace TweeterApp.Controllers
             var post = await _postRepository.GetByIdAsync(id);
             var isOwner = post.UserId == CurrentUserId();
 
-            if (post.UserId != int.Parse(_userManager.GetUserId(User))) return Forbid();
+            //if (post.UserId != int.Parse(_userManager.GetUserId(User))) return Forbid();
             if (!isOwner && !IsAdmin())
             {
                 return Forbid();

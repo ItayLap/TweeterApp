@@ -1,7 +1,7 @@
 ﻿@model TweeterApp.Models.PostModel
 
 <h2>Edit post</h2>
-<form asp-action="Edit" method="post">
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
     <input type="hidden" asp-for="Id"/>
     <input type="hidden" asp-for="UserId"/>
     <div class="form-group">
@@ -11,6 +11,10 @@
     <div class="form-group">
         <label asp-for="Content" class="control-label">Post contents</label>
         <textarea asp-for="Content" class="form-control"></textarea>
+    </div>
+    <div>
+        <label >Image</label>
+        <input type="file" name="imageFile" class="form-control" />
     </div>
     <button type="submit" class="btn btn-primary">Confirm changes</button>
 </form>

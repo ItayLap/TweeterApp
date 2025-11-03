@@ -66,7 +66,7 @@ namespace TweeterApp.Data
             modelBuilder.Entity<PostModel>()
                 .HasMany(p => p.Comments)
                 .WithOne(p => p.Post)
-                .OnDelete(DeleteBehavior.Restrict);//
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<NotificationModel>()
                 .HasOne(n=> n.Recipiant)
