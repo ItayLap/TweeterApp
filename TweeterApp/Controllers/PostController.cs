@@ -78,8 +78,7 @@ namespace TweeterApp.Controllers
                 return View(Post);
             }
             string? imagePath = null;
-            if (ModelState.IsValid)
-            {
+
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null)
                 {
@@ -88,7 +87,7 @@ namespace TweeterApp.Controllers
                 if(Post.ImageFile != null && Post.ImageFile.Length > 0)
                 {
                     var fileName = Path.GetFileName(Post.ImageFile.FileName);
-                    var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                    var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Uploads");
                     Directory.CreateDirectory(uploadsPath);
                     var filePath = Path.Combine(uploadsPath, fileName);
                     using (var stream = new FileStream(filePath, FileMode.Create))
@@ -109,8 +108,6 @@ namespace TweeterApp.Controllers
 
                 await _postRepository.AddAsync(post);
                 return RedirectToAction("Index");
-            }
-            return View(Post);
         }
 
         public async Task<IActionResult> GetPost(int id)
@@ -145,7 +142,6 @@ namespace TweeterApp.Controllers
                     ModelState.AddModelError(nameof(model.ImageFile), "Only .jpg / .jpeg / .png / .gif files are allowed");
                 if (model.ImageFile.Length > 2 * 1024 * 1024)
                     ModelState.AddModelError(nameof(model.ImageFile), "File size must be ≤ 2 MB");
-                if (!ModelState.IsValid) return View(model);
                 var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads");
                 Directory.CreateDirectory(uploads);
                 var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.ImageFile.FileName)}";
