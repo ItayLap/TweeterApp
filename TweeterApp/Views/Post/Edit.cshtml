@@ -1,9 +1,7 @@
-﻿@model TweeterApp.Models.PostModel
+﻿@model TweeterApp.Models.ViewModels.PostEditCreateViewModel
 
 <h2>Edit post</h2>
-<form asp-action="Edit" method="post" enctype="multipart/form-data">
-    <input type="hidden" asp-for="Id"/>
-    <input type="hidden" asp-for="UserId"/>
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
     <div class="form-group">
         <label asp-for="Title" class="control-label">Title</label>
         <input asp-for="Title" class="form-control" />
@@ -13,8 +11,15 @@
         <textarea asp-for="Content" class="form-control"></textarea>
     </div>
     <div>
+        @if (!string.IsNullOrEmpty(Model.ExistingImagePath))
+        {
+            <div class="mb-2">
+                <img src="@Model.ExistingImagePath" alt="Current image" style="max-height:200px"/>
+            </div>
+        }
         <label >Image</label>
-        <input type="file" name="imageFile" class="form-control" />
+        <input type="file" asp-for="ImageFile" class="form-control" accept=".jpg,.jpeg,.png,.gif"/>
     </div>
+    <input type="hidden" asp-for="ExistingImagePath" />
     <button type="submit" class="btn btn-primary">Confirm changes</button>
 </form>

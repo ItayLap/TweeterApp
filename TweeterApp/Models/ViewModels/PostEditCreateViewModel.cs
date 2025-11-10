@@ -4,6 +4,7 @@ namespace TweeterApp.Models.ViewModels
 {
     public class PostEditCreateViewModel
     {
+        public int Id { get; set; }
         [Required, StringLength(5000)]
         public string Content { get; set; }
 

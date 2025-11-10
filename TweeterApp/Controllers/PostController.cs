@@ -169,7 +169,14 @@ namespace TweeterApp.Controllers
             {
                 return NotFound();
             }
-            return View(post);
+            var vm = new PostEditCreateViewModel
+            {
+                Id = id,
+                Title = post.Title,
+                Content = post.Content,
+                ExistingImagePath = post.ImagePath
+            };
+            return View(vm);
         }
 
         public async Task<IActionResult> Delete(int id)
