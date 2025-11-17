@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
@@ -50,11 +51,28 @@ namespace TweeterApp.Hubs
         public async Task SendMessage(string toUsername,string message)
         {
             var fromUsername = Context.User.Identity.Name ?? "Anonymous";
+            var sender = await _db.Users.FirstOrDefaultAsync(u => u.UserName == fromUsername);
+            var receiver = await _db.Users.FirstOrDefaultAsync(u => u.UserName == toUsername);
+            if (sender == null || receiver == null) return;
+
             if (string.IsNullOrWhiteSpace(toUsername) || string.IsNullOrWhiteSpace(message) || string.IsNullOrWhiteSpace(fromUsername)) return;
             if (!await AreFriends(toUsername, fromUsername)) return;
+            var timestamp = DateTime.UtcNow;
+
+            var msg = new MessageModel
+            {
+                SenderId = sender.Id,
+                ReceiverId = receiver.Id,
+                Body = message,
+                SentAt = timestamp,
+                IsRead = false
+            };
+            _db.Messages.Add(msg);
+            await _db.SaveChangesAsync();
+
             var group = DialougGroup(fromUsername, toUsername);
             var id = Guid.NewGuid().ToString("N");
-            await Clients.Group(group).SendAsync("ReceiveMessage",id, fromUsername, message, DateTimeOffset.UtcNow);
+            await Clients.Group(group).SendAsync("ReceiveMessage",msg.Id, fromUsername, message, msg.SentAt);
         }
         public async Task JoinDialoug(string otherUsername)
         {

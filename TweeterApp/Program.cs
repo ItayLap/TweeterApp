@@ -133,13 +133,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-// change pattern 
-
-//Перенаправление в AccountController
-
-//[Authorize] + LoginPath —> builder.Services.ConfigureApplicationCookie(options =>
-//{
-//    options.LoginPath = "/Account/Login";
-//});
 
 app.Run();

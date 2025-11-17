@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TweeterApp.Data;
+using TweeterApp.Migrations;
 using TweeterApp.Models;
 
 namespace TweeterApp.Controllers
@@ -27,12 +28,14 @@ namespace TweeterApp.Controllers
         public IActionResult Index()
         {
             var me = User?.Identity?.Name ?? "";
-            var emails = _userManager.Users
-                .Select(u => u.Email)
-                .Where(e =>  e != null && e != me)
-                .OrderBy(e => e)
+            var meLower = me.ToLowerInvariant();
+            var friends = _context.Friends
+                .Where(f => f.Status == FriendshipStatus.Accepted &&
+                                (f.RequesterUserName == meLower || f.AddresseeUserName == meLower))
+                .Select(f => f.RequesterUserName == meLower ? f.AddresseeUserName : f.RequesterUserName)
+                .OrderBy(f => f)
                 .ToList();
-            var vm = new StartChatViewModel { Users = emails };
+            var vm = new StartChatViewModel { Users = friends };
             return View(vm);
         }
 

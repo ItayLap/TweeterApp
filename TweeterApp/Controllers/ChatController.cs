@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Threading.Tasks;
 using TweeterApp.Data;
 using TweeterApp.Models;
 
@@ -12,15 +14,35 @@ namespace TweeterApp.Controllers
         {
             _context = context;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var me = User?.Identity?.Name ?? "";
+            var friends = await _context.Friends
+                .Where(f => f.Status == FriendshipStatus.Accepted && (f.RequesterUserName == me || f.AddresseeUserName == me))
+                .Select(f => f.RequesterUserName == me ? f.AddresseeUserName : f.RequesterUserName)
+                .OrderBy(n => n)
+                .ToListAsync();
+            var vm = new StartChatViewModel
+            {
+                Users = friends,
+            };
+            return View(vm);
         }
 
         [HttpGet("/chat/with/{**userName}")]
         public IActionResult With(string userName)
         {
             if(string.IsNullOrEmpty(userName))return NotFound();
+            var me = User.Identity!.Name!.ToLowerInvariant();
+            var other = userName.ToLowerInvariant();
+
+            var history = _context.Messages
+                .Where(m =>
+                (m.FromUser == me && m.ToUser == other) ||
+                (m.FromUser == other && m.ToUser == me))
+                .OrderBy(m => m.SentAt)
+                .ToList();
+
             ViewData["OtherUser"] = userName;
             return View("Chat");
         }

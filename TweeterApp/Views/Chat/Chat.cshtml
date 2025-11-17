@@ -123,7 +123,7 @@
         if (!text) return;
         try {
             await connection.invoke("SendMessage", otherUser, text);
-            // appendMessage(currentUser, text, new Date().toISOString());
+            // appendMessage(currentUser, text, new Date().toISOString()); to not double sent messages
             messageInput.value = "";
             messageInput.focus();
         } catch (err) {
@@ -273,9 +273,8 @@
         }
 
     .bubble {
-        background: #fff;
-        border: 1px solid #ccc;
-        border-radius: 10px;
+        max-width: 90%;
+        overflow: hidden;
         padding: 10px;
     }
 
@@ -335,7 +334,7 @@
                 background-color:#f3f4f6
             }
 
-    img-msg{
+    .img-msg{
         display:block;
         max-width:600px;
         max-height:400px;
