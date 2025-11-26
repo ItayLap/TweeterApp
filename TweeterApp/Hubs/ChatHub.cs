@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using System.Collections.Concurrent;
+using System.Net.WebSockets;
+using System.Reflection;
 using TweeterApp.Data;
 using TweeterApp.Models;
 
@@ -66,9 +68,7 @@ namespace TweeterApp.Hubs
                 Body = message,
                 SentAt = timestamp,
                 IsRead = false,
-                Subject = "",
-                ImageUrl = "",
-                Caption = ""
+                Subject = ""
             };
             _db.Messages.Add(msg);
             await _db.SaveChangesAsync();
@@ -143,16 +143,32 @@ namespace TweeterApp.Hubs
                 await Clients.Group(group).SendAsync("ReactionUpdated", new { messageId, emoji, count, user = me, added = true });
             }
         }
-        public async Task SendImage(string toUsername, string imageUrl, string? caption = null)
+        public async Task SendImage(string toUsername, string imageUrl, string? caption)
         {
             var from = Context.User?.Identity?.Name ?? "Anonymous";
+
+            var sender = await _db.Users.FirstOrDefaultAsync(u => u.UserName == from);
+            var receiver = await _db.Users.FirstOrDefaultAsync(u => u.UserName == toUsername);
+            if (sender == null || receiver == null) return;
+
             if(string.IsNullOrWhiteSpace(toUsername)|| string.IsNullOrWhiteSpace(imageUrl)) return;
             //if (!await AreFriends(toUsername, )) return;
             var group = DialougGroup(from, toUsername);
-            var id = Guid.NewGuid().ToString("N");
-            var timestamp = DateTimeOffset.UtcNow;
 
-            await Clients.Group(group).SendAsync("ReceiveImage", id, from, imageUrl, caption, timestamp);
+            var msg = new MessageModel
+            {
+                SenderId = sender.Id,
+                ReceiverId = receiver.Id,
+                Caption = caption,
+                Subject = "image",
+                Type = MessageType.Image,
+                ImageUrl = imageUrl,
+            };
+            _db.Messages.Add(msg);
+            await _db.SaveChangesAsync();
+
+
+            await Clients.Group(group).SendAsync("ReceiveImage", msg.Id, from, msg.ImageUrl, msg.Caption, .SentAt);
         }
         
         private Task<bool> AreFriends(string a, string b) =>
