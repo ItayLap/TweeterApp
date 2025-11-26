@@ -8,8 +8,11 @@ namespace TweeterApp.Models
         public int SenderId {  get; set; }
         public int ReceiverId {  get; set; }
 
-        public string Subject { get; set; }
+        public string? Subject { get; set; }
         public string Body { set; get; }
+
+        public string ImageUrl { get; set; }
+        public string Caption { get; set; }
 
 
         public DateTime SentAt { get; set; } = DateTime.UtcNow;

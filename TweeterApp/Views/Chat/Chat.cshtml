@@ -1,4 +1,5 @@
-﻿@{
+﻿@model List<TweeterApp.Models.MessageModel>
+@{
     var otherUser = (string)(ViewData["OtherUser"] ?? "");
     var currentUser = User?.Identity?.Name ?? "";
     ViewData["Title"] = $"Чат с {otherUser}";
@@ -12,7 +13,30 @@
         <div id="presence" class="presence">offline</div>
     </div>
 
-    <ul id="messagesList" class="messages"></ul>
+    <ul id="messagesList" class="messages">
+        @foreach (var msg in Model)
+        {
+            var isMine = msg.Sender.UserName == User.Identity.Name ? "from-me" : "from-others";
+            <li class="message @isMine" data-id="@msg.Id">
+                <div class="bubble">
+                    <img src="@msg.ImageUrl" class="img-msg"/>
+                    @if(!string.IsNullOrEmpty(msg.Caption))
+                    {
+                        <div class="text">${escapeHtml(message)}</div>
+                    } 
+                    <div class="text">@msg.Body</div>
+                    <div class="meta">@msg.Sender.UserName - @msg.SentAt.ToString("HH:mm")</div>
+                </div>
+                <div class="reactions"></div>
+                <div class="react-bar">
+                    <button class="r" type="button" data-emoji="👍">👍</button>
+                    <button class="r" type="button" data-emoji="❤️">❤️</button>
+                    <button class="r" type="button" data-emoji="😂">😂</button>
+                    <button class="r" type="button" data-emoji="🔥">🔥</button>
+                </div>
+            </li>
+        }
+    </ul>
 
     <div class="chat-inputs">
         <button id="photoBtn" type="button" title="Send Photo">📷</button>

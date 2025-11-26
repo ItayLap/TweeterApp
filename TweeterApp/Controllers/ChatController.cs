@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
@@ -10,9 +11,11 @@ namespace TweeterApp.Controllers
     public class ChatController : Controller
     {
         private readonly ApplicationDbContext _context;
-        public ChatController(ApplicationDbContext context)
+        private readonly UserManager<ApplicationUser> _userManager;
+        public ChatController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
         public async Task<IActionResult> Index()
         {
@@ -30,21 +33,21 @@ namespace TweeterApp.Controllers
         }
 
         [HttpGet("/chat/with/{**userName}")]
-        public IActionResult With(string userName)
+        public async Task<IActionResult> WithAsync(string userName)
         {
             if(string.IsNullOrEmpty(userName))return NotFound();
-            var me = User.Identity!.Name!.ToLowerInvariant();
-            var other = userName.ToLowerInvariant();
+            var me = await _userManager.GetUserAsync(User);
+            var other = await _userManager.FindByEmailAsync(userName);
 
             var history = _context.Messages
                 .Where(m =>
-                (m.FromUser == me && m.ToUser == other) ||
-                (m.FromUser == other && m.ToUser == me))
+                (m.SenderId == me.Id && m.ReceiverId == other.Id) ||
+                (m.SenderId == other.Id && m.ReceiverId == me.Id))
                 .OrderBy(m => m.SentAt)
                 .ToList();
 
             ViewData["OtherUser"] = userName;
-            return View("Chat");
+            return View("Chat",history);
         }
         //public async Task<IActionResult> Index()
         //{

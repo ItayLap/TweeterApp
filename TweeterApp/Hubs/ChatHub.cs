@@ -65,7 +65,10 @@ namespace TweeterApp.Hubs
                 ReceiverId = receiver.Id,
                 Body = message,
                 SentAt = timestamp,
-                IsRead = false
+                IsRead = false,
+                Subject = "",
+                ImageUrl = "",
+                Caption = ""
             };
             _db.Messages.Add(msg);
             await _db.SaveChangesAsync();
